@@ -1,0 +1,246 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --rose-blush: #F9E4EC;
+    --rose-mid: #E8809E;
+    --deep-rose: #B5294E;
+    --rose-dark: #7A1733;
+    --warm-white: #FDF5F7;
+    --blush-gray: #F2E8EC;
+    --dusty-rose: #8A6470;
+    --dark-plum: #2C1A20;
+    --cream: #FFF5E6;
+    --gold: #C99A5A;
+  }
+
+  .page { font-family: 'DM Sans', sans-serif; background: var(--warm-white); color: var(--dark-plum); width: 100%; }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px; background: var(--warm-white);
+    border-bottom: 1px solid var(--blush-gray); position: sticky; top: 0; z-index: 10;
+  }
+  .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: var(--deep-rose); letter-spacing: 0.02em; }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { font-size: 14px; color: var(--dusty-rose); text-decoration: none; font-weight: 400; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--deep-rose); }
+  .nav-cta { background: var(--deep-rose); color: #fff; border: none; border-radius: 100px; padding: 10px 24px; font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+  .nav-cta:hover { background: var(--rose-dark); }
+
+  /* HERO */
+  .hero {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+    align-items: center; padding: 80px 48px 64px;
+    background: linear-gradient(135deg, var(--warm-white) 60%, var(--rose-blush) 100%);
+  }
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--rose-blush); color: var(--deep-rose); font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 100px; margin-bottom: 20px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .hero-dot { width: 6px; height: 6px; background: var(--deep-rose); border-radius: 50%; }
+  .hero h1 { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 600; line-height: 1.1; color: var(--dark-plum); margin-bottom: 20px; }
+  .hero h1 span { color: var(--deep-rose); }
+  .hero-sub { font-size: 16px; color: var(--dusty-rose); line-height: 1.7; margin-bottom: 36px; max-width: 420px; }
+  .hero-actions { display: flex; gap: 14px; align-items: center; }
+  .btn-primary { background: var(--deep-rose); color: #fff; border: none; border-radius: 100px; padding: 14px 32px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+  .btn-primary:hover { background: var(--rose-dark); }
+  .btn-ghost { background: transparent; color: var(--deep-rose); border: 1.5px solid var(--rose-mid); border-radius: 100px; padding: 13px 28px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover { background: var(--rose-blush); }
+
+  /* hero card mockup */
+  .hero-visual { display: flex; justify-content: center; align-items: center; }
+  .memory-card {
+    background: #fff; border-radius: 20px; border: 1px solid var(--blush-gray);
+    padding: 28px; width: 300px; box-shadow: 0 8px 40px rgba(181,41,78,0.08);
+  }
+  .mc-img { width: 100%; height: 160px; background: linear-gradient(135deg, var(--rose-blush), var(--rose-mid)); border-radius: 12px; margin-bottom: 18px; display: flex; align-items: center; justify-content: center; }
+  .mc-img-icon { font-size: 48px; opacity: 0.6; }
+  .mc-date { font-size: 11px; color: var(--rose-mid); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .mc-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--dark-plum); margin-bottom: 8px; }
+  .mc-desc { font-size: 13px; color: var(--dusty-rose); line-height: 1.6; }
+  .mc-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--blush-gray); }
+  .mc-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--deep-rose); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 500; }
+  .mc-like { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--dusty-rose); }
+  .mc-heart { color: var(--deep-rose); font-size: 14px; }
+
+  /* STATS */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--blush-gray); border-bottom: 1px solid var(--blush-gray); }
+  .stat { padding: 32px 48px; border-right: 1px solid var(--blush-gray); text-align: center; }
+  .stat:last-child { border-right: none; }
+  .stat-number { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 600; color: var(--deep-rose); line-height: 1; margin-bottom: 6px; }
+  .stat-label { font-size: 13px; color: var(--dusty-rose); }
+
+  /* FEATURES */
+  .features { padding: 80px 48px; }
+  .section-eyebrow { font-size: 12px; color: var(--deep-rose); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 600; color: var(--dark-plum); margin-bottom: 12px; line-height: 1.2; }
+  .section-sub { font-size: 15px; color: var(--dusty-rose); margin-bottom: 48px; max-width: 480px; line-height: 1.7; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .feature-card { background: #fff; border: 1px solid var(--blush-gray); border-radius: 16px; padding: 28px; transition: border-color 0.2s, box-shadow 0.2s; }
+  .feature-card:hover { border-color: var(--rose-mid); box-shadow: 0 4px 20px rgba(181,41,78,0.06); }
+  .feature-icon { width: 44px; height: 44px; background: var(--rose-blush); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 20px; }
+  .feature-title { font-size: 16px; font-weight: 500; color: var(--dark-plum); margin-bottom: 8px; }
+  .feature-desc { font-size: 13px; color: var(--dusty-rose); line-height: 1.6; }
+
+  /* TESTIMONIAL */
+  .testimonial { background: var(--rose-blush); padding: 64px 48px; text-align: center; }
+  .quote { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; color: var(--dark-plum); line-height: 1.5; max-width: 600px; margin: 0 auto 24px; }
+  .quote-mark { color: var(--deep-rose); font-size: 40px; font-weight: 600; line-height: 0.5; display: block; margin-bottom: 12px; }
+  .testimonial-author { font-size: 13px; color: var(--dusty-rose); }
+  .testimonial-name { font-weight: 500; color: var(--dark-plum); }
+
+  /* CTA BANNER */
+  .cta-banner { background: var(--deep-rose); padding: 64px 48px; display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+  .cta-banner h2 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; color: #fff; max-width: 480px; line-height: 1.2; }
+  .cta-banner h2 span { color: #F9C8D8; }
+  .btn-white { background: #fff; color: var(--deep-rose); border: none; border-radius: 100px; padding: 14px 32px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
+  .btn-white:hover { opacity: 0.9; }
+
+  /* FOOTER */
+  footer { background: var(--dark-plum); padding: 48px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+  .footer-brand .nav-logo { color: #F9C8D8; display: block; margin-bottom: 12px; }
+  .footer-desc { font-size: 13px; color: #8A6470; line-height: 1.6; }
+  .footer-col h4 { font-size: 12px; font-weight: 500; color: #E8809E; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+  .footer-col a { display: block; font-size: 13px; color: #8A6470; text-decoration: none; margin-bottom: 8px; transition: color 0.2s; }
+  .footer-col a:hover { color: #F9C8D8; }
+  .footer-bottom { background: #1E0F14; padding: 16px 48px; display: flex; justify-content: space-between; align-items: center; }
+  .footer-bottom p { font-size: 12px; color: #8A6470; }
+  .gold-badge { font-size: 11px; color: var(--gold); font-weight: 500; }
+</style>
+
+<div class="page">
+  <nav>
+    <span class="nav-logo">Memora</span>
+    <ul class="nav-links">
+      <li><a href="#">Features</a></li>
+      <li><a href="#">Gallery</a></li>
+      <li><a href="#">Pricing</a></li>
+      <li><a href="#">About</a></li>
+    </ul>
+    <button class="nav-cta">Get started free</button>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-eyebrow"><span class="hero-dot"></span> New — AI memory crafting</div>
+      <h1>Keep every<br>memory <span>alive</span><br>forever.</h1>
+      <p class="hero-sub">Memora helps you capture, organize, and relive your most precious moments — beautifully.</p>
+      <div class="hero-actions">
+        <button class="btn-primary">Start for free</button>
+        <button class="btn-ghost">See how it works</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="memory-card">
+        <div class="mc-img">
+          <span class="mc-img-icon">🌸</span>
+        </div>
+        <div class="mc-date">May 2026 · Cairo</div>
+        <div class="mc-title">Our first spring together</div>
+        <div class="mc-desc">The afternoon we got completely lost in the old market and found that tiny tea house.</div>
+        <div class="mc-footer">
+          <div class="mc-avatar">SA</div>
+          <div class="mc-like"><span class="mc-heart">♥</span> 24 moments</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-number">2.4M+</div>
+      <div class="stat-label">Memories crafted</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">180K</div>
+      <div class="stat-label">Happy users</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">98%</div>
+      <div class="stat-label">Would recommend</div>
+    </div>
+  </div>
+
+  <section class="features">
+    <div class="section-eyebrow">Why Memora</div>
+    <div class="section-title">Everything your memories deserve</div>
+    <p class="section-sub">From a single photo to a full life album — Memora gives every moment the space it deserves.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📸</div>
+        <div class="feature-title">Smart collections</div>
+        <div class="feature-desc">AI automatically groups your moments into meaningful collections — no manual sorting needed.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✍️</div>
+        <div class="feature-title">Story crafting</div>
+        <div class="feature-desc">Add rich captions, timelines, and emotions to every memory with our beautiful editor.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Private by default</div>
+        <div class="feature-desc">Your memories belong to you. End-to-end encrypted, always private, never sold.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎁</div>
+        <div class="feature-title">Memory gifts</div>
+        <div class="feature-desc">Compile your best moments into a beautiful digital gift for someone you love.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <div class="feature-title">Memory map</div>
+        <div class="feature-desc">See all your moments plotted on a beautiful world map — your life as a journey.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✨</div>
+        <div class="feature-title">Yearly recap</div>
+        <div class="feature-desc">Get a stunning annual highlight reel auto-generated from your year of memories.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="testimonial">
+    <span class="quote-mark">"</span>
+    <p class="quote">Memora turned a shoebox of photos into something I actually look at every single day.</p>
+    <p class="testimonial-author"><span class="testimonial-name">Nour Khalil</span> · Designer, Alexandria</p>
+  </div>
+
+  <div class="cta-banner">
+    <h2>Start <span>crafting</span> your memories today.</h2>
+    <button class="btn-white">Create your first memory →</button>
+  </div>
+
+  <footer>
+    <div class="footer-brand">
+      <span class="nav-logo" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;">Memora</span>
+      <p class="footer-desc">Crafting meaningful memories,<br>one moment at a time.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#">Features</a>
+      <a href="#">Pricing</a>
+      <a href="#">Gallery</a>
+      <a href="#">Mobile app</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About</a>
+      <a href="#">Blog</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <a href="#">Help center</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </div>
+  </footer>
+  <div class="footer-bottom">
+    <p>© 2026 Memora. All rights reserved.</p>
+    <span class="gold-badge">Made with love ♥</span>
+  </div>
+</div>

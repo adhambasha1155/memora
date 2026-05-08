@@ -101,191 +101,180 @@ export default function LandingPage() {
 
   return (
     <main className="root">
-      {/* Navbar */}
-      <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-        <div className="navInner">
-          <span className="navBrand">Memora</span>
-          <div className="navActions">
-            {user ? (
-              <Link href="/dashboard" className="btnPrimary">
-                Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link href="/signup" className="btnGhost">
-                  Sign in
+      <div className="pageContent">
+        <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+          <div className="navInner">
+            <span className="navBrand">Memora</span>
+            <div className="navActions">
+              {user ? (
+                <Link href="/dashboard" className="btnPrimary">
+                  Your Memora&apos;s
                 </Link>
-                <Link href="/signup" className="btnPrimary">
-                  Create account
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="hero">
-        <div className="heroParticles">
-          {particles.map((p) => (
-            <div
-              key={p.id}
-              className="particle"
-              style={{
-                width: `${p.size}px`,
-                height: `${p.size}px`,
-                left: `${p.left}%`,
-                top: `${p.top}%`,
-                animationDuration: `${p.duration}s`,
-                animationDelay: `${p.delay}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="heroContent">
-          <div className="heroBadge">✦ Memory websites, beautifully made</div>
-          <h1 className="heroTitle">
-            Turn your memories
-            <br />
-            into an <em>experience.</em>
-          </h1>
-          <p className="heroSub">
-            Create cinematic, interactive websites for the moments that matter —
-            <br />
-            birthdays, anniversaries, graduations and everything in between.
-          </p>
-          <div className="heroCtas">
-            <Link href="/signup" className="ctaPrimary">
-              Create yours free
-            </Link>
-            <a href="#templates" className="ctaGhost">
-              See examples ↓
-            </a>
-          </div>
-        </div>
-
-        <div className="heroCard">
-          <div className="heroCardInner">
-            <div className="heroCardDate">MAY 2026 · ALEXANDRIA</div>
-            <div className="heroCardTitle">Happy Birthday, Sina 💖</div>
-            <div className="heroCardMsg">
-              I only want to see you as the best person in the whole world...
-            </div>
-            <div className="heroCardFooter">
-              <div className="heroCardAvatar">A</div>
-              <span className="heroCardViews">♥ 847 views</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="howSection">
-        <div className="sectionInner">
-          <div className="sectionLabel">HOW IT WORKS</div>
-          <h2 className="sectionTitle">Three steps to something beautiful</h2>
-          <div className="stepsGrid">
-            {steps.map((step) => (
-              <div key={step.num} className="stepCard">
-                <div className="stepNum">{step.num}</div>
-                <h3 className="stepTitle">{step.title}</h3>
-                <p className="stepDesc">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Templates */}
-      <section className="templatesSection" id="templates">
-        <div className="sectionInner">
-          <div className="sectionLabel">TEMPLATES</div>
-          <h2 className="sectionTitle">Five ways to tell your story</h2>
-          <p className="sectionSub">
-            Each template is a complete cinematic experience. Pick the one that
-            feels right.
-          </p>
-          <div className="templatesGrid">
-            {templates.map((t) => (
-              <div
-                key={t.id}
-                className="templateCard"
-                style={
-                  {
-                    '--card-bg': t.color,
-                    '--card-accent': t.accent,
-                  } as React.CSSProperties
-                }
-              >
-                <div className="templatePreview">
-                  <div className="templateDot" />
-                  <div className="templateLines">
-                    <div className="templateLine long" />
-                    <div className="templateLine short" />
-                    <div className="templateLine medium" />
-                  </div>
-                </div>
-                <div className="templateInfo">
-                  <div className="templateName">{t.name}</div>
-                  <div className="templateMood">{t.mood}</div>
-                </div>
-                <div className="templateActions">
-                  <button className="templateBtn ghost">Preview</button>
-                  <Link href="/signup" className="templateBtn primary">
-                    Use this
+              ) : (
+                <>
+                  <Link href="/signup" className="btnGhost">
+                    Sign in
                   </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Social proof */}
-      <section className="proofSection">
-        <div className="sectionInner">
-          <div className="sectionLabel">MADE WITH MEMORA</div>
-          <h2 className="sectionTitle">Real moments, real people</h2>
-          <div className="proofGrid">
-            {proofs.map((p) => (
-              <div key={p.name} className="proofCard">
-                <div className="proofEmoji">{p.emoji}</div>
-                <div className="proofName">{p.name}</div>
-                <div className="proofOccasion">{p.occasion}</div>
-                <div className="proofViews">♥ {p.views} views</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="testimonial">
-            <div className="quoteMarks">"</div>
-            <p className="quoteText">
-              Memora turned a folder of photos into something I actually look at
-              every single day.
-            </p>
-            <div className="quoteAuthor">
-              Nour Khalil · Designer, Alexandria
+                  <Link href="/signup" className="btnPrimary">
+                    Create account
+                  </Link>
+                </>
+              )}
             </div>
           </div>
-        </div>
-      </section>
+        </nav>
 
-      {/* CTA Section */}
-      <section className="ctaSection">
-        <div className="ctaInner">
-          <h2 className="ctaTitle">
-            Start crafting your
-            <br />
-            <em>memories today.</em>
-          </h2>
-          <Link href="/signup" className="ctaBigBtn">
-            Create your first Memora →
-          </Link>
-        </div>
-      </section>
+        <section className="hero">
+          <div className="heroParticles">
+            {particles.map((p) => (
+              <div
+                key={p.id}
+                className="particle"
+                style={{
+                  width: `${p.size}px`,
+                  height: `${p.size}px`,
+                  left: `${p.left}%`,
+                  top: `${p.top}%`,
+                  animationDuration: `${p.duration}s`,
+                  animationDelay: `${p.delay}s`,
+                }}
+              />
+            ))}
+          </div>
 
-      {/* Footer */}
+          <div className="heroContent">
+            <div className="heroBadge">✦ Memory websites, beautifully made</div>
+            <h1 className="heroTitle">
+              Turn your memories
+              <br />
+              into an <em>experience.</em>
+            </h1>
+            <p className="heroSub">
+              Create cinematic, interactive websites for the moments that matter
+              —<br />
+              birthdays, anniversaries, graduations and everything in between.
+            </p>
+            <div className="heroCtas">
+              <Link href="/signup" className="ctaPrimary">
+                Create yours free
+              </Link>
+              <a href="#templates" className="ctaGhost">
+                See examples ↓
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section className="howSection">
+          <div className="sectionInner">
+            <div className="sectionLabel">HOW IT WORKS</div>
+            <h2 className="sectionTitle">Three steps to something beautiful</h2>
+            <div className="stepsGrid">
+              {steps.map((step) => (
+                <div key={step.num} className="stepCard">
+                  <div className="stepNum">{step.num}</div>
+                  <h3 className="stepTitle">{step.title}</h3>
+                  <p className="stepDesc">{step.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="templatesSection" id="templates">
+          <div className="sectionInner">
+            <div className="sectionLabel">TEMPLATES</div>
+            <h2 className="sectionTitle">Five ways to tell your story</h2>
+            <p className="sectionSub">
+              Each template is a complete cinematic experience. Pick the one
+              that feels right.
+            </p>
+
+            <div className="sliderWrapper">
+              <div className="templatesGrid">
+                {templates.map((t) => (
+                  <div
+                    key={t.id}
+                    className="templateCard"
+                    style={
+                      {
+                        '--card-bg': t.color,
+                        '--card-accent': t.accent,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <div className="templatePreview">
+                      <div className="templateDot" />
+                      <div className="templateLines">
+                        <div className="templateLine long" />
+                        <div className="templateLine short" />
+                        <div className="templateLine medium" />
+                      </div>
+                    </div>
+                    <div className="templateInfo">
+                      <div className="templateName">{t.name}</div>
+                      <div className="templateMood">{t.mood}</div>
+                    </div>
+                    <div className="templateActions">
+                      <button className="templateBtn ghost">Preview</button>
+                      <Link href="/signup" className="templateBtn primary">
+                        Use this
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="proofSection">
+          <div className="sectionInner">
+            <div className="sectionLabel">MADE WITH MEMORA</div>
+            <h2 className="sectionTitle">Real moments, real people</h2>
+
+            <div className="sliderWrapper">
+              <div className="proofGrid">
+                {proofs.map((p) => (
+                  <div key={p.name} className="proofCard">
+                    <div className="proofEmoji">{p.emoji}</div>
+                    <div className="proofName">{p.name}</div>
+                    <div className="proofOccasion">{p.occasion}</div>
+                    <div className="proofViews">♥ {p.views} views</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="testimonial">
+              <div className="quoteMarks"></div>
+              <p className="quoteText">
+                Memora turned a folder of photos into something I actually look
+                at every single day.
+              </p>
+              <div className="quoteAuthor">
+                Nour Khalil · Designer, Alexandria
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="ctaSection">
+          <div className="ctaInner">
+            <div className="ctaTextContent">
+              <h2 className="ctaTitle">
+                Start crafting your
+                <br />
+                <em>memories today.</em>
+              </h2>
+            </div>
+            <Link href="/signup" className="ctaBigBtn">
+              Create your first Memora →
+            </Link>
+          </div>
+        </section>
+      </div>
+
       <footer className="footer">
         <div className="footerInner">
           <div className="footerBrand">
@@ -333,101 +322,12 @@ export default function LandingPage() {
           --rose-dark: #7a1733;
           --dark-plum: #2c1a20;
           --dusty-rose: #8a6470;
-          --rose-mid: #e8809e;
           font-family: 'DM Sans', sans-serif;
           color: var(--dark-plum);
-          background: var(--warm-white);
           overflow-x: hidden;
         }
 
-        /* NAVBAR */
-        .navbar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 100;
-          padding: 0 24px;
-          transition: all 0.3s ease;
-          background: transparent;
-        }
-
-        .navbar.scrolled {
-          background: rgba(253, 245, 247, 0.92);
-          backdrop-filter: blur(16px);
-          border-bottom: 1px solid rgba(194, 24, 91, 0.08);
-          box-shadow: 0 4px 20px rgba(194, 24, 91, 0.06);
-        }
-
-        .navInner {
-          max-width: 1100px;
-          margin: 0 auto;
-          height: 64px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .navBrand {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 26px;
-          font-weight: 700;
-          color: var(--main-rose);
-          letter-spacing: 0.02em;
-        }
-
-        .navActions {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .btnGhost {
-          padding: 8px 18px;
-          border: 1px solid rgba(194, 24, 91, 0.2);
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--main-rose);
-          text-decoration: none;
-          font-family: 'DM Sans', sans-serif;
-          transition: 0.2s ease;
-          background: transparent;
-        }
-
-        .btnGhost:hover {
-          background: var(--rose-blush);
-        }
-
-        .btnPrimary {
-          padding: 8px 18px;
-          border: none;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 600;
-          color: #fff;
-          background: var(--main-rose);
-          text-decoration: none;
-          font-family: 'DM Sans', sans-serif;
-          transition: 0.2s ease;
-          box-shadow: 0 4px 14px rgba(194, 24, 91, 0.25);
-        }
-
-        .btnPrimary:hover {
-          background: var(--rose-dark);
-          transform: translateY(-1px);
-        }
-
-        /* HERO */
-        .hero {
-          min-height: 100vh;
-          padding: 120px 24px 80px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 60px;
-          position: relative;
-          overflow: hidden;
+        .pageContent {
           background:
             radial-gradient(
               circle at 15% 20%,
@@ -445,23 +345,84 @@ export default function LandingPage() {
               transparent 40%
             ),
             var(--warm-white);
-          max-width: 100%;
-          box-sizing: border-box;
+          min-height: 100vh;
         }
 
+        /* NAVIGATION & HERO */
+        .navbar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 100;
+          padding: 0 24px;
+          transition: all 0.3s ease;
+          background: transparent;
+        }
+        .navbar.scrolled {
+          background: rgba(253, 245, 247, 0.92);
+          backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(194, 24, 91, 0.08);
+          box-shadow: 0 4px 20px rgba(194, 24, 91, 0.06);
+        }
+        .navInner {
+          max-width: 1100px;
+          margin: 0 auto;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .navBrand {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 26px;
+          font-weight: 700;
+          color: var(--main-rose);
+        }
+        .navActions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .btnGhost {
+          padding: 8px 18px;
+          border: 1px solid rgba(194, 24, 91, 0.2);
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--main-rose);
+          text-decoration: none;
+        }
+        .btnPrimary {
+          padding: 8px 18px;
+          background: var(--main-rose);
+          color: #fff;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 600;
+          text-decoration: none;
+        }
+
+        .hero {
+          min-height: 100vh;
+          padding: 120px 24px 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          position: relative;
+        }
         .heroParticles {
           position: absolute;
           inset: 0;
           pointer-events: none;
         }
-
         .particle {
           position: absolute;
           border-radius: 50%;
           background: rgba(194, 24, 91, 0.12);
           animation: particleFloat ease-in-out infinite;
         }
-
         @keyframes particleFloat {
           0%,
           100% {
@@ -473,15 +434,14 @@ export default function LandingPage() {
             opacity: 1;
           }
         }
-
         .heroContent {
-          flex: 1;
-          max-width: 560px;
-          position: relative;
+          max-width: 800px;
           z-index: 1;
           animation: fadeUp 0.8s ease forwards;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
         }
-
         @keyframes fadeUp {
           from {
             opacity: 0;
@@ -492,11 +452,7 @@ export default function LandingPage() {
             transform: translateY(0);
           }
         }
-
         .heroBadge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
           padding: 6px 14px;
           background: rgba(194, 24, 91, 0.08);
           border: 1px solid rgba(194, 24, 91, 0.15);
@@ -504,40 +460,33 @@ export default function LandingPage() {
           font-size: 10px;
           font-weight: 600;
           color: var(--main-rose);
-          letter-spacing: 0.08em;
           margin-bottom: 24px;
         }
-
         .heroTitle {
           font-family: 'Cormorant Garamond', serif;
           font-size: clamp(42px, 6vw, 72px);
           font-weight: 600;
           line-height: 1.05;
           color: var(--dark-plum);
-          letter-spacing: -0.02em;
           margin-bottom: 20px;
         }
-
         .heroTitle em {
           font-style: italic;
           color: var(--main-rose);
         }
-
         .heroSub {
           font-size: 14px;
           line-height: 1.7;
           color: var(--dusty-rose);
-          font-weight: 300;
           margin-bottom: 32px;
         }
 
         .heroCtas {
           display: flex;
-          align-items: center;
           gap: 14px;
-          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
         }
-
         .ctaPrimary {
           padding: 14px 28px;
           background: var(--main-rose);
@@ -546,135 +495,96 @@ export default function LandingPage() {
           font-size: 13px;
           font-weight: 600;
           text-decoration: none;
-          font-family: 'DM Sans', sans-serif;
-          transition: 0.2s ease;
           box-shadow: 0 8px 24px rgba(194, 24, 91, 0.25);
+          border: 1px solid transparent;
         }
-
-        .ctaPrimary:hover {
-          background: var(--rose-dark);
-          transform: translateY(-2px);
-          box-shadow: 0 12px 32px rgba(194, 24, 91, 0.3);
-        }
-
         .ctaGhost {
           padding: 14px 24px;
-          color: var(--dusty-rose);
-          font-size: 13px;
-          font-weight: 500;
-          text-decoration: none;
-          font-family: 'DM Sans', sans-serif;
-          transition: 0.2s ease;
           border: 1px solid rgba(138, 100, 112, 0.2);
           border-radius: 999px;
-        }
-
-        .ctaGhost:hover {
-          color: var(--main-rose);
-          border-color: rgba(194, 24, 91, 0.3);
-          background: var(--rose-blush);
-        }
-
-        .heroCard {
-          flex: 0 0 320px;
-          animation: fadeUp 0.8s 0.2s ease both;
-          position: relative;
-          z-index: 1;
-        }
-
-        .heroCardInner {
-          background: #fff;
-          border: 1px solid rgba(194, 24, 91, 0.1);
-          border-radius: 20px;
-          padding: 24px;
-          box-shadow: 0 24px 60px rgba(194, 24, 91, 0.12);
-        }
-
-        .heroCardDate {
-          font-size: 10px;
-          color: var(--dusty-rose);
-          letter-spacing: 0.08em;
-          font-weight: 500;
-          margin-bottom: 10px;
-        }
-
-        .heroCardTitle {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 20px;
-          font-weight: 700;
-          color: var(--dark-plum);
-          margin-bottom: 10px;
-          line-height: 1.2;
-        }
-
-        .heroCardMsg {
-          font-size: 12px;
-          color: var(--dusty-rose);
-          line-height: 1.6;
-          margin-bottom: 18px;
-          font-style: italic;
-        }
-
-        .heroCardFooter {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .heroCardAvatar {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: var(--main-rose);
-          color: #fff;
           font-size: 13px;
-          font-weight: 700;
+          color: var(--dusty-rose);
+          text-decoration: none;
           display: flex;
           align-items: center;
-          justify-content: center;
+          height: 46px;
         }
 
-        .heroCardViews {
-          font-size: 11px;
-          color: var(--rose-mid);
-          font-weight: 500;
-        }
-
-        /* HOW IT WORKS */
-        .howSection {
+        /* SECTIONS & POP EFFECT */
+        .howSection,
+        .templatesSection,
+        .proofSection {
           padding: 100px 24px;
-          background: #fff;
+          background: transparent;
         }
-
         .sectionInner {
           max-width: 1100px;
           margin: 0 auto;
         }
-
         .sectionLabel {
           font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.12em;
           color: var(--main-rose);
+          text-align: center;
           margin-bottom: 12px;
         }
-
         .sectionTitle {
           font-family: 'Cormorant Garamond', serif;
           font-size: clamp(32px, 4vw, 48px);
           font-weight: 600;
-          color: var(--dark-plum);
-          letter-spacing: -0.02em;
+          text-align: center;
           margin-bottom: 16px;
-          line-height: 1.1;
         }
-
         .sectionSub {
           font-size: 13px;
           color: var(--dusty-rose);
-          font-weight: 300;
+          text-align: center;
           margin-bottom: 48px;
-          line-height: 1.6;
+        }
+
+        .sliderWrapper {
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          padding-bottom: 30px;
+        }
+        .sliderWrapper::-webkit-scrollbar {
+          display: none;
+        }
+
+        .templatesGrid,
+        .proofGrid {
+          display: flex;
+          gap: 20px;
+          padding: 10px 4px 20px;
+          width: max-content;
+          margin: 0 auto;
+        }
+
+        @media (max-width: 1024px) {
+          .templatesGrid,
+          .proofGrid {
+            margin: 0;
+            padding: 10px 20px 20px;
+          }
+        }
+
+        .stepCard,
+        .templateCard,
+        .proofCard {
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(194, 24, 91, 0.08);
+          border-radius: 18px;
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .stepCard:hover,
+        .templateCard:hover,
+        .proofCard:hover {
+          transform: translateY(-10px);
+          box-shadow: 0 20px 40px rgba(194, 24, 91, 0.1);
+          background: rgba(255, 255, 255, 0.9);
         }
 
         .stepsGrid {
@@ -682,134 +592,78 @@ export default function LandingPage() {
           grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
           gap: 24px;
         }
-
         .stepCard {
           padding: 28px 24px;
-          border: 1px solid rgba(194, 24, 91, 0.08);
-          border-radius: 18px;
-          background: var(--warm-white);
-          transition: 0.25s ease;
         }
-
-        .stepCard:hover {
-          border-color: rgba(194, 24, 91, 0.2);
-          box-shadow: 0 12px 32px rgba(194, 24, 91, 0.08);
-          transform: translateY(-3px);
-        }
-
         .stepNum {
           font-family: 'Cormorant Garamond', serif;
           font-size: 48px;
-          font-weight: 700;
           color: rgba(194, 24, 91, 0.15);
-          line-height: 1;
           margin-bottom: 14px;
+          transition: 0.3s;
         }
-
+        .stepCard:hover .stepNum {
+          color: var(--main-rose);
+          transform: scale(1.1);
+        }
         .stepTitle {
           font-family: 'Cormorant Garamond', serif;
           font-size: 22px;
-          font-weight: 600;
-          color: var(--dark-plum);
           margin-bottom: 10px;
         }
-
         .stepDesc {
           font-size: 13px;
           color: var(--dusty-rose);
-          line-height: 1.65;
-          font-weight: 300;
-        }
-
-        /* TEMPLATES */
-        .templatesSection {
-          padding: 100px 24px;
-          background: var(--warm-white);
-        }
-
-        .templatesGrid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-          gap: 18px;
-          margin-top: 48px;
+          line-height: 1.6;
         }
 
         .templateCard {
-          border-radius: 16px;
+          width: 220px;
           overflow: hidden;
-          border: 1px solid rgba(194, 24, 91, 0.1);
-          background: #fff;
-          transition: 0.25s ease;
-          cursor: pointer;
         }
-
-        .templateCard:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 16px 40px rgba(194, 24, 91, 0.12);
-          border-color: rgba(194, 24, 91, 0.25);
-        }
-
         .templatePreview {
           height: 130px;
-          background: var(--card-bg, #f5f5f5);
+          background: var(--card-bg);
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 10px;
-          padding: 20px;
         }
-
         .templateDot {
           width: 28px;
           height: 28px;
           border-radius: 50%;
-          background: var(--card-accent, #c2185b);
+          background: var(--card-accent);
           opacity: 0.7;
         }
-
-        .templateLines {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-          width: 100%;
-        }
-
         .templateLine {
           height: 3px;
           border-radius: 999px;
-          background: var(--card-accent, #c2185b);
+          background: var(--card-accent);
           opacity: 0.2;
         }
-
         .templateLine.long {
-          width: 100%;
+          width: 40px;
         }
         .templateLine.medium {
-          width: 70%;
+          width: 30px;
         }
         .templateLine.short {
-          width: 45%;
+          width: 20px;
         }
-
         .templateInfo {
           padding: 14px 16px 10px;
         }
-
         .templateName {
           font-family: 'Cormorant Garamond', serif;
           font-size: 17px;
           font-weight: 700;
-          color: var(--dark-plum);
-          margin-bottom: 3px;
         }
-
         .templateMood {
           font-size: 10px;
           color: var(--dusty-rose);
-          font-weight: 400;
         }
-
         .templateActions {
           padding: 0 16px 14px;
           display: flex;
@@ -818,294 +672,200 @@ export default function LandingPage() {
 
         .templateBtn {
           flex: 1;
-          height: 30px;
+          height: 32px;
           border-radius: 8px;
           font-size: 11px;
           font-weight: 600;
-          font-family: 'DM Sans', sans-serif;
-          cursor: pointer;
-          text-decoration: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: 0.2s ease;
           border: none;
+          cursor: pointer;
+          transition: 0.2s;
         }
-
         .templateBtn.ghost {
           background: var(--rose-blush);
           color: var(--main-rose);
         }
-
-        .templateBtn.ghost:hover {
-          background: rgba(194, 24, 91, 0.15);
-        }
-
         .templateBtn.primary {
           background: var(--main-rose);
           color: #fff;
         }
-
-        .templateBtn.primary:hover {
-          background: var(--rose-dark);
-        }
-
-        /* SOCIAL PROOF */
-        .proofSection {
-          padding: 100px 24px;
-          background: #fff;
-        }
-
-        .proofGrid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 20px;
-          margin-top: 48px;
-          margin-bottom: 64px;
+        .templateBtn:hover {
+          transform: scale(1.05);
+          filter: brightness(1.1);
         }
 
         .proofCard {
+          width: 240px;
           padding: 28px 24px;
-          border: 1px solid rgba(194, 24, 91, 0.08);
-          border-radius: 18px;
-          background: var(--warm-white);
           text-align: center;
-          transition: 0.25s ease;
         }
-
-        .proofCard:hover {
-          border-color: rgba(194, 24, 91, 0.2);
-          box-shadow: 0 12px 32px rgba(194, 24, 91, 0.08);
-          transform: translateY(-3px);
-        }
-
         .proofEmoji {
           font-size: 28px;
           margin-bottom: 12px;
         }
-
         .proofName {
           font-family: 'Cormorant Garamond', serif;
           font-size: 18px;
           font-weight: 700;
-          color: var(--dark-plum);
-          margin-bottom: 5px;
         }
-
         .proofOccasion {
           font-size: 11px;
           color: var(--main-rose);
           font-weight: 600;
-          letter-spacing: 0.06em;
           text-transform: uppercase;
           margin-bottom: 10px;
         }
-
         .proofViews {
           font-size: 11px;
           color: var(--dusty-rose);
-          font-weight: 400;
         }
 
         .testimonial {
           max-width: 680px;
-          margin: 0 auto;
+          margin: 48px auto 0;
           text-align: center;
-          padding: 48px 0;
           border-top: 1px solid rgba(194, 24, 91, 0.08);
+          padding-top: 48px;
         }
-
         .quoteMarks {
           font-family: 'Cormorant Garamond', serif;
           font-size: 64px;
           color: var(--main-rose);
-          line-height: 0.5;
-          margin-bottom: 24px;
           opacity: 0.4;
+          line-height: 0;
         }
-
         .quoteText {
           font-family: 'Cormorant Garamond', serif;
           font-size: clamp(22px, 3vw, 32px);
-          font-weight: 400;
-          color: var(--dark-plum);
-          line-height: 1.4;
-          margin-bottom: 20px;
           font-style: italic;
+          margin-bottom: 20px;
         }
-
         .quoteAuthor {
           font-size: 12px;
           color: var(--dusty-rose);
           font-weight: 500;
         }
 
-        /* CTA SECTION */
+        /* Smaller, Responsive Bottom CTA Box[cite: 1] */
         .ctaSection {
-          background: var(--rose-dark);
-          padding: 100px 24px;
+          padding: 60px 24px 100px;
         }
-
         .ctaInner {
-          max-width: 700px;
+          max-width: 800px;
           margin: 0 auto;
+          background: var(--rose-dark);
+          padding: 48px 60px;
+          border-radius: 32px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 40px;
-          flex-wrap: wrap;
+          box-shadow: 0 20px 50px rgba(122, 23, 51, 0.2);
         }
-
         .ctaTitle {
           font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(32px, 4vw, 48px);
-          font-weight: 600;
+          font-size: 36px;
           color: #fff;
-          line-height: 1.15;
-          letter-spacing: -0.02em;
+          line-height: 1.1;
+          margin: 0;
         }
-
         .ctaTitle em {
           font-style: italic;
           color: var(--rose-blush);
         }
-
         .ctaBigBtn {
           padding: 16px 32px;
           background: #fff;
           color: var(--rose-dark);
           border-radius: 999px;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 700;
           text-decoration: none;
-          font-family: 'DM Sans', sans-serif;
-          transition: 0.2s ease;
           white-space: nowrap;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+          transition: 0.3s;
         }
-
         .ctaBigBtn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+          transform: scale(1.05);
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
         }
 
-        /* FOOTER */
         .footer {
           background: var(--dark-plum);
           padding: 60px 24px 24px;
+          color: rgba(255, 255, 255, 0.6);
         }
-
         .footerInner {
           max-width: 1100px;
           margin: 0 auto;
           display: flex;
+          justify-content: space-between;
           gap: 60px;
           flex-wrap: wrap;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           padding-bottom: 40px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          margin-bottom: 24px;
         }
-
-        .footerBrand {
-          flex: 1;
-          min-width: 200px;
-        }
-
         .footerLogo {
           font-family: 'Cormorant Garamond', serif;
           font-size: 24px;
-          font-weight: 700;
           color: #fff;
-          letter-spacing: 0.02em;
           margin-bottom: 10px;
         }
-
-        .footerTagline {
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.4);
-          line-height: 1.6;
-          font-weight: 300;
-        }
-
         .footerCols {
           display: flex;
           gap: 48px;
-          flex-wrap: wrap;
         }
-
         .footerCol {
           display: flex;
           flex-direction: column;
           gap: 10px;
-          min-width: 100px;
         }
-
         .footerColTitle {
           font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.1em;
-          color: rgba(255, 255, 255, 0.35);
+          color: rgba(255, 255, 255, 0.4);
           margin-bottom: 4px;
         }
-
         .footerCol a {
           font-size: 12px;
-          color: rgba(255, 255, 255, 0.55);
+          color: inherit;
           text-decoration: none;
-          font-weight: 300;
-          transition: 0.2s ease;
         }
-
-        .footerCol a:hover {
-          color: #fff;
-        }
-
         .footerBottom {
           max-width: 1100px;
-          margin: 0 auto;
+          margin: 24px auto 0;
           display: flex;
           justify-content: space-between;
           font-size: 11px;
-          color: rgba(255, 255, 255, 0.25);
-          flex-wrap: wrap;
-          gap: 8px;
         }
 
         @media (max-width: 768px) {
-          .hero {
-            flex-direction: column;
-            padding: 100px 20px 60px;
-            text-align: center;
-          }
-
-          .heroCtas {
-            justify-content: center;
-          }
-
-          .heroCard {
-            flex: none;
-            width: 100%;
-            max-width: 340px;
-          }
-
+          /* Mobile Overrides for CTA Box[cite: 1] */
           .ctaInner {
             flex-direction: column;
             text-align: center;
+            padding: 32px 24px;
+            gap: 24px;
+            max-width: 340px; /* Force a smaller width on mobile */
           }
-
-          .footerInner {
-            flex-direction: column;
-            gap: 32px;
+          .ctaTitle {
+            font-size: 26px;
           }
-        }
-
-        @media (max-width: 480px) {
-          .templatesGrid {
-            grid-template-columns: 1fr 1fr;
+          .ctaBigBtn {
+            width: 100%;
+            text-align: center;
           }
 
           .navActions .btnGhost {
             display: none;
+          }
+          .heroCtas {
+            flex-direction: column;
+            width: 100%;
+            max-width: 240px;
+            margin: 0 auto;
+          }
+          .ctaPrimary,
+          .ctaGhost {
+            width: 100%;
+            justify-content: center;
           }
         }
       `}</style>

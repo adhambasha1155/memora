@@ -15,10 +15,10 @@ export default function AuthPage() {
   const [signupSuccess, setSignupSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const [username, setUsername] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [usernameStatus, setUsernameStatus] = useState<
     'idle' | 'checking' | 'available' | 'taken'
   >('idle')
-
   function isValidEmail(email: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
@@ -38,7 +38,6 @@ export default function AuthPage() {
 
   async function handleSignin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-
     const form = new FormData(e.currentTarget)
     const email = String(form.get('email') || '').trim()
     const password = String(form.get('password') || '').trim()
@@ -50,34 +49,33 @@ export default function AuthPage() {
 
     setSigninError('')
     setLoading(true)
-
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-
     setLoading(false)
 
     if (error) {
       setSigninError(error.message)
       return
     }
-
     router.push('/dashboard')
   }
 
   async function handleSignup(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-
     const form = new FormData(e.currentTarget)
     const email = String(form.get('email') || '').trim()
     const password = String(form.get('password') || '').trim()
 
+    if (displayName.trim().length < 2) {
+      setSignupError('Please enter your name.')
+      return
+    }
     if (usernameStatus !== 'available') {
       setSignupError('Please choose an available username.')
       return
     }
-
     if (!isValidEmail(email) || password.length < 6) {
       setSignupError('Please complete all fields correctly.')
       return
@@ -85,8 +83,13 @@ export default function AuthPage() {
 
     setSignupError('')
     setLoading(true)
-
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
+    })
 
     if (error) {
       setSignupError(error.message)
@@ -95,9 +98,12 @@ export default function AuthPage() {
     }
 
     if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({ id: data.user.id, username, email })
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        username,
+        email,
+        display_name: displayName.trim(),
+      })
       if (profileError) {
         setSignupError(profileError.message)
         setLoading(false)
@@ -112,13 +118,21 @@ export default function AuthPage() {
   async function handleGoogleAuth() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: {
+        // Redirect everyone to the dashboard first to check their status
+        redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
     })
   }
 
   function handleForgotPassword() {
     router.push('/forgot-password')
   }
+
   return (
     <main className="authPage">
       <section className="authShell">
@@ -153,7 +167,6 @@ export default function AuthPage() {
             >
               Sign in
             </button>
-
             <button
               className={`switchBtn ${mode === 'signup' ? 'active' : ''}`}
               type="button"
@@ -163,38 +176,38 @@ export default function AuthPage() {
             </button>
           </div>
 
-          {mode === 'signin' ? (
-            <div className="panel active">
-              <button
-                className="googleBtn"
-                type="button"
-                onClick={handleGoogleAuth}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                Continue with Google
-              </button>
+          <div className="panel active">
+            <button
+              className="googleBtn"
+              type="button"
+              onClick={handleGoogleAuth}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              Continue with Google
+            </button>
 
-              <div className="orDivider">
-                <span>or</span>
-              </div>
+            <div className="orDivider">
+              <span>or</span>
+            </div>
 
+            {mode === 'signin' ? (
               <form onSubmit={handleSignin}>
                 <div className="field">
                   <label htmlFor="signinEmail">Email</label>
@@ -224,9 +237,7 @@ export default function AuthPage() {
                     <button
                       className="togglePass"
                       type="button"
-                      onClick={() =>
-                        setShowSigninPassword((current) => !current)
-                      }
+                      onClick={() => setShowSigninPassword(!showSigninPassword)}
                     >
                       {showSigninPassword ? '🙈' : '👁'}
                     </button>
@@ -235,10 +246,8 @@ export default function AuthPage() {
 
                 <div className="row">
                   <label className="remember">
-                    <input type="checkbox" />
-                    Remember me
+                    <input type="checkbox" /> Remember me
                   </label>
-
                   <button
                     type="button"
                     className="textLink"
@@ -251,54 +260,25 @@ export default function AuthPage() {
                 <button className="submitBtn" type="submit" disabled={loading}>
                   {loading ? 'Signing in…' : 'Sign in'}
                 </button>
-
                 {signinError && <div className="error">{signinError}</div>}
               </form>
-
-              <div className="bottomNote">
-                New here?{' '}
-                <button
-                  type="button"
-                  className="inlineLink"
-                  onClick={() => setMode('signup')}
-                >
-                  Create an account
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="panel active">
-              <button
-                className="googleBtn"
-                type="button"
-                onClick={handleGoogleAuth}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                Continue with Google
-              </button>
-
-              <div className="orDivider">
-                <span>or</span>
-              </div>
-
+            ) : (
               <form onSubmit={handleSignup}>
+                <div className="field">
+                  <label htmlFor="displayNameField">Your name</label>
+                  <div className="inputWrap">
+                    <input
+                      id="displayNameField"
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="e.g. Adham Basha"
+                      required
+                    />
+                    <span className="icon">👤</span>
+                  </div>
+                </div>
+
                 <div className="field">
                   <label htmlFor="usernameField">Username</label>
                   <div className="inputWrap">
@@ -353,9 +333,7 @@ export default function AuthPage() {
                     <button
                       className="togglePass"
                       type="button"
-                      onClick={() =>
-                        setShowSignupPassword((current) => !current)
-                      }
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
                     >
                       {showSignupPassword ? '🙈' : '👁'}
                     </button>
@@ -368,7 +346,6 @@ export default function AuthPage() {
                 <button className="submitBtn" type="submit" disabled={loading}>
                   {loading ? 'Creating account…' : 'Create account'}
                 </button>
-
                 {signupError && <div className="error">{signupError}</div>}
                 {signupSuccess && (
                   <div className="success">
@@ -376,19 +353,19 @@ export default function AuthPage() {
                   </div>
                 )}
               </form>
+            )}
 
-              <div className="bottomNote">
-                Already have one?{' '}
-                <button
-                  type="button"
-                  className="inlineLink"
-                  onClick={() => setMode('signin')}
-                >
-                  Sign in
-                </button>
-              </div>
+            <div className="bottomNote">
+              {mode === 'signin' ? 'New here? ' : 'Already have one? '}
+              <button
+                type="button"
+                className="inlineLink"
+                onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+              >
+                {mode === 'signin' ? 'Create an account' : 'Sign in'}
+              </button>
             </div>
-          )}
+          </div>
 
           <div className="footerMini">
             By continuing, you agree to Memora&apos;s Terms & Privacy.{' '}
@@ -403,14 +380,10 @@ export default function AuthPage() {
         .authPage {
           --warm-white: #fdf5f7;
           --rose-blush: #f9e4ec;
-          --blush-gray: #f2e8ec;
           --main-rose: #c2185b;
-          --rose-mid: #e8809e;
-          --rose-soft: #f4b8cb;
           --rose-dark: #7a1733;
           --dark-plum: #2c1a20;
           --dusty-rose: #8a6470;
-          --cream: #fff5e6;
           --gold: #c99a5a;
 
           min-height: 100vh;
@@ -437,55 +410,58 @@ export default function AuthPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 22px 14px;
+          padding: 16px 12px;
           overflow-x: hidden;
         }
 
         .authShell {
-          width: min(100%, 380px);
+          width: min(100%, 350px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
         }
 
         .brand {
           text-align: center;
-          margin-bottom: 18px;
+          margin-bottom: 12px;
           font-family: 'Cormorant Garamond', serif;
-          font-size: 30px;
+          font-size: 28px;
           font-weight: 700;
           color: var(--main-rose);
           letter-spacing: 0.02em;
+          width: 100%;
         }
 
         .authCard {
           width: 100%;
           background: rgba(255, 255, 255, 0.72);
           border: 1px solid rgba(194, 24, 91, 0.08);
-          border-radius: 24px;
-          padding: 24px 22px 18px;
-          box-shadow: 0 18px 44px rgba(194, 24, 91, 0.1);
+          border-radius: 20px;
+          padding: 20px 18px 14px;
+          box-shadow: 0 12px 34px rgba(194, 24, 91, 0.08);
           backdrop-filter: blur(16px);
         }
 
         .header {
-          margin-bottom: 17px;
+          margin-bottom: 14px;
         }
 
         .title {
           font-family: 'Cormorant Garamond', serif;
-          font-size: 30px;
+          font-size: 26px;
           line-height: 1.05;
           font-weight: 700;
           color: var(--dark-plum);
           letter-spacing: -0.025em;
-          margin-bottom: 5px;
+          margin-bottom: 4px;
         }
 
         .title span {
           color: var(--main-rose);
         }
-
         .subtitle {
-          font-size: 12px;
-          line-height: 1.55;
+          font-size: 11.5px;
+          line-height: 1.4;
           color: var(--dusty-rose);
           font-weight: 400;
         }
@@ -499,17 +475,16 @@ export default function AuthPage() {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 4px;
-          margin-bottom: 17px;
+          margin-bottom: 14px;
         }
 
         .switchBtn {
-          height: 32px;
+          height: 30px;
           border: none;
           border-radius: 999px;
           background: transparent;
           color: var(--dusty-rose);
-          font-size: 11.5px;
-          font-family: 'DM Sans', sans-serif;
+          font-size: 11px;
           font-weight: 600;
           cursor: pointer;
           transition: 0.22s ease;
@@ -518,18 +493,17 @@ export default function AuthPage() {
         .switchBtn.active {
           background: var(--main-rose);
           color: #fff;
-          box-shadow: 0 8px 18px rgba(194, 24, 91, 0.18);
+          box-shadow: 0 6px 14px rgba(194, 24, 91, 0.15);
         }
 
         .googleBtn {
           width: 100%;
-          height: 40px;
+          height: 38px;
           border: 1px solid rgba(194, 24, 91, 0.15);
-          border-radius: 11px;
+          border-radius: 10px;
           background: #fff;
           color: var(--dark-plum);
-          font-size: 12px;
-          font-family: 'DM Sans', sans-serif;
+          font-size: 11.5px;
           font-weight: 600;
           cursor: pointer;
           display: flex;
@@ -537,21 +511,20 @@ export default function AuthPage() {
           justify-content: center;
           gap: 8px;
           transition: 0.22s ease;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
 
         .googleBtn:hover {
           background: var(--rose-blush);
-          border-color: rgba(194, 24, 91, 0.25);
         }
 
         .orDivider {
           display: flex;
           align-items: center;
           gap: 10px;
-          margin-bottom: 14px;
+          margin-bottom: 12px;
           color: var(--dusty-rose);
-          font-size: 10px;
+          font-size: 9.5px;
           font-weight: 500;
         }
 
@@ -566,13 +539,11 @@ export default function AuthPage() {
         .panel {
           animation: softIn 0.22s ease both;
         }
-
         @keyframes softIn {
           from {
             opacity: 0;
             transform: translateY(5px);
           }
-
           to {
             opacity: 1;
             transform: translateY(0);
@@ -580,38 +551,36 @@ export default function AuthPage() {
         }
 
         .field {
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
-
         .field label {
           display: block;
-          font-size: 11px;
+          font-size: 10.5px;
           font-weight: 600;
           color: var(--dark-plum);
-          margin-bottom: 6px;
+          margin-bottom: 4px;
         }
 
         .inputWrap {
           position: relative;
         }
-
         .inputWrap input {
           width: 100%;
-          height: 40px;
+          height: 38px;
           border: 1px solid rgba(194, 24, 91, 0.1);
-          border-radius: 11px;
+          border-radius: 10px;
           background: rgba(255, 255, 255, 0.86);
           color: var(--dark-plum);
           outline: none;
-          padding: 0 40px 0 12px;
-          font-size: 12px;
-          font-family: 'DM Sans', sans-serif;
-          font-weight: 500;
+          padding: 0 36px 0 10px;
+          font-size: 16px;
           transition: 0.22s ease;
         }
 
-        .inputWrap input::placeholder {
-          color: rgba(138, 100, 112, 0.62);
+        @media (min-width: 421px) {
+          .inputWrap input {
+            font-size: 12px;
+          }
         }
 
         .inputWrap input:focus {
@@ -622,41 +591,38 @@ export default function AuthPage() {
 
         .icon {
           position: absolute;
-          right: 12px;
+          right: 10px;
           top: 50%;
           transform: translateY(-50%);
-          color: rgba(138, 100, 112, 0.74);
-          font-size: 13px;
-          pointer-events: none;
+          color: rgba(138, 100, 112, 0.7);
+          font-size: 12px;
         }
 
         .togglePass {
           position: absolute;
-          right: 7px;
+          right: 6px;
           top: 50%;
           transform: translateY(-50%);
-          width: 27px;
-          height: 27px;
+          width: 25px;
+          height: 25px;
           border: none;
-          border-radius: 8px;
+          border-radius: 7px;
           background: rgba(249, 228, 236, 0.86);
           color: var(--main-rose);
           cursor: pointer;
-          font-size: 11px;
+          font-size: 10px;
         }
 
         .helper {
-          margin-top: 5px;
+          margin-top: 4px;
           color: var(--dusty-rose);
-          font-size: 9.5px;
-          line-height: 1.45;
+          font-size: 9px;
+          line-height: 1.4;
         }
-
         .helper.available {
           color: #2e7d32;
           font-weight: 600;
         }
-
         .helper.taken {
           color: var(--main-rose);
           font-weight: 600;
@@ -666,41 +632,33 @@ export default function AuthPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 10px;
-          flex-wrap: wrap;
-          margin: 3px 0 14px;
+          margin: 2px 0 12px;
         }
-
         .remember {
           display: inline-flex;
           align-items: center;
-          gap: 7px;
+          gap: 6px;
           color: var(--dusty-rose);
-          font-size: 10.5px;
+          font-size: 10px;
           font-weight: 500;
           cursor: pointer;
-          user-select: none;
         }
-
         .remember input {
-          width: 13px;
-          height: 13px;
+          width: 12px;
+          height: 12px;
           accent-color: var(--main-rose);
         }
 
         .textLink,
         .inlineLink {
           color: var(--main-rose);
-          text-decoration: none;
-          font-size: 10.5px;
-          font-weight: 600;
           background: transparent;
           border: none;
+          font-size: 10px;
+          font-weight: 600;
           cursor: pointer;
-          font-family: 'DM Sans', sans-serif;
           padding: 0;
         }
-
         .textLink:hover,
         .inlineLink:hover {
           text-decoration: underline;
@@ -708,94 +666,79 @@ export default function AuthPage() {
 
         .submitBtn {
           width: 100%;
-          height: 41px;
+          height: 38px;
           border: none;
-          border-radius: 11px;
+          border-radius: 10px;
           background: var(--main-rose);
           color: #fff;
-          font-size: 12.5px;
-          font-family: 'DM Sans', sans-serif;
+          font-size: 12px;
           font-weight: 600;
           cursor: pointer;
-          box-shadow: 0 12px 24px rgba(194, 24, 91, 0.16);
+          box-shadow: 0 10px 20px rgba(194, 24, 91, 0.14);
           transition: 0.22s ease;
+          margin-top: 4px;
         }
 
         .submitBtn:hover {
           transform: translateY(-1px);
           background: var(--rose-dark);
-          box-shadow: 0 16px 30px rgba(194, 24, 91, 0.2);
         }
-
-        .bottomNote {
-          text-align: center;
-          margin-top: 13px;
-          color: var(--dusty-rose);
-          font-size: 10.5px;
-          line-height: 1.5;
-        }
-
-        .error {
-          margin-top: 8px;
-          color: var(--main-rose);
-          font-size: 10.5px;
-          font-weight: 600;
-          line-height: 1.45;
-        }
-
-        .success {
-          margin-top: 8px;
-          color: #2e7d32;
-          font-size: 10.5px;
-          font-weight: 600;
-          line-height: 1.45;
-        }
-
         .submitBtn:disabled {
           opacity: 0.65;
           cursor: not-allowed;
           transform: none;
         }
 
-        .footerMini {
+        .bottomNote {
           text-align: center;
-          margin-top: 14px;
-          font-size: 9.5px;
-          color: rgba(138, 100, 112, 0.76);
-          line-height: 1.5;
+          margin-top: 12px;
+          color: var(--dusty-rose);
+          font-size: 10px;
+        }
+        .error {
+          margin-top: 6px;
+          color: var(--main-rose);
+          font-size: 10px;
+          font-weight: 600;
+        }
+        .success {
+          margin-top: 6px;
+          color: #2e7d32;
+          font-size: 10px;
+          font-weight: 600;
         }
 
+        .footerMini {
+          text-align: center;
+          margin-top: 12px;
+          font-size: 9px;
+          color: rgba(138, 100, 112, 0.76);
+          line-height: 1.4;
+        }
         .footerMini span {
           color: var(--gold);
           font-weight: 600;
         }
 
         @media (max-width: 420px) {
-          .authPage {
-            padding: 16px 12px;
+          .authShell {
+            max-width: 310px;
           }
-
           .brand {
-            font-size: 27px;
-            margin-bottom: 14px;
+            font-size: 24px;
+            margin-bottom: 10px;
           }
-
           .authCard {
-            padding: 21px 16px 16px;
-            border-radius: 20px;
+            padding: 16px 14px 12px;
           }
-
           .title {
-            font-size: 27px;
+            font-size: 22px;
           }
-
-          .switchBtn {
-            height: 31px;
+          .subtitle {
+            font-size: 10.5px;
           }
-
-          .inputWrap input,
-          .submitBtn {
-            height: 39px;
+          .inputWrap input {
+            font-size: 16px;
           }
         }
       `}</style>

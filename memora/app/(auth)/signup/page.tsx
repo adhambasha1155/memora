@@ -83,35 +83,27 @@ export default function AuthPage() {
 
     setSignupError('')
     setLoading(true)
-    const { data, error } = await supabase.auth.signUp({
+
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
+        data: {
+          // Pass username + display_name into metadata so the trigger can use them
+          preferred_username: username,
+          full_name: displayName.trim(),
+        },
       },
     })
 
+    setLoading(false)
+
     if (error) {
       setSignupError(error.message)
-      setLoading(false)
       return
     }
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        username,
-        email,
-        display_name: displayName.trim(),
-      })
-      if (profileError) {
-        setSignupError(profileError.message)
-        setLoading(false)
-        return
-      }
-    }
-
-    setLoading(false)
     setSignupSuccess(true)
   }
 
@@ -119,8 +111,7 @@ export default function AuthPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        // Redirect everyone to the dashboard first to check their status
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',

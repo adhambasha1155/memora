@@ -84,15 +84,14 @@ export default function AuthPage() {
     setSignupError('')
     setLoading(true)
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
-          // Pass username + display_name into metadata so the trigger can use them
-          preferred_username: username,
           full_name: displayName.trim(),
+          preferred_username: username,
         },
       },
     })
@@ -104,9 +103,17 @@ export default function AuthPage() {
       return
     }
 
-    setSignupSuccess(true)
+    // Directly insert profile since email confirmation is disabled
+    if (data.user) {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        email,
+        username,
+        display_name: displayName.trim(),
+      })
+      router.push('/dashboard')
+    }
   }
-
   async function handleGoogleAuth() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',

@@ -46,7 +46,9 @@ export default function ResetPasswordPage() {
   return (
     <main className="rpPage">
       <section className="rpShell">
-        <div className="brand">Memora</div>
+        <div className="brand">
+          <img src="/memora-logo.png" alt="Memora" className="logo" />
+        </div>
 
         <div className="rpCard">
           {success ? (
@@ -172,12 +174,15 @@ export default function ResetPasswordPage() {
 
         .brand {
           text-align: center;
-          margin-bottom: 18px;
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 30px;
-          font-weight: 700;
-          color: var(--main-rose);
-          letter-spacing: 0.02em;
+          margin-bottom: 0px;
+        }
+
+        .logo {
+          height: 63px;
+          width: auto;
+          object-fit: contain;
+          display: block;
+          margin: 0 auto;
         }
 
         .rpCard {

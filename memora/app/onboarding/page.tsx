@@ -97,7 +97,9 @@ export default function OnboardingPage() {
   return (
     <main className="obPage">
       <section className="obShell">
-        <div className="brand">Memora</div>
+        <div className="brand">
+          <img src="/memora-logo.png" alt="Memora" className="logo" />
+        </div>
 
         <div className="obCard">
           <div className="obHeader">
@@ -207,14 +209,16 @@ export default function OnboardingPage() {
 
         .brand {
           text-align: center;
-          margin-bottom: 18px;
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 30px;
-          font-weight: 700;
-          color: var(--main-rose);
-          letter-spacing: 0.02em;
+          margin-bottom: 0px;
         }
 
+        .logo {
+          height: 63px;
+          width: auto;
+          object-fit: contain;
+          display: block;
+          margin: 0 auto;
+        }
         .obCard {
           width: 100%;
           background: rgba(255, 255, 255, 0.72);

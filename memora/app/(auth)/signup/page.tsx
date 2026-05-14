@@ -134,8 +134,9 @@ export default function AuthPage() {
   return (
     <main className="authPage">
       <section className="authShell">
-        <div className="brand">Memora</div>
-
+        <div className="brand">
+          <img src="/memora-logo.png" alt="Memora" className="logo" />
+        </div>
         <div className="authCard">
           {mode === 'signin' ? (
             <div className="header">
@@ -366,8 +367,7 @@ export default function AuthPage() {
           </div>
 
           <div className="footerMini">
-            By continuing, you agree to Memora&apos;s Terms & Privacy.{' '}
-            <span>♥</span>
+            By continuing, you agree to Memora&apos;s Terms & Privacy.
           </div>
         </div>
       </section>
@@ -421,15 +421,16 @@ export default function AuthPage() {
 
         .brand {
           text-align: center;
-          margin-bottom: 12px;
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 28px;
-          font-weight: 700;
-          color: var(--main-rose);
-          letter-spacing: 0.02em;
-          width: 100%;
+          margin-bottom: 0px;
         }
 
+        .logo {
+          height: 63px;
+          width: auto;
+          object-fit: contain;
+          display: block;
+          margin: 0 auto;
+        }
         .authCard {
           width: 100%;
           background: rgba(255, 255, 255, 0.72);

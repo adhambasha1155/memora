@@ -81,11 +81,11 @@ export default function PickPage() {
       {/* Navbar */}
       <nav className="pickNav">
         <div className="pickNavInner">
-          <Link href="/dashboard" className="pickBrand">
-            Memora
+          <Link href="/" className="dashBrand">
+            <img src="/memora-logo.png" alt="Memora" className="logo" />
           </Link>
           <Link href="/dashboard" className="backBtn">
-            ← Back to dashboard
+            ← Back to account
           </Link>
         </div>
       </nav>
@@ -261,15 +261,17 @@ export default function PickPage() {
           justify-content: space-between;
         }
 
-        .pickBrand {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 26px;
-          font-weight: 700;
-          color: var(--main-rose);
+        .dashBrand {
           text-decoration: none;
-          letter-spacing: 0.02em;
+          display: flex;
+          align-items: center;
         }
 
+        .logo {
+          height: 63px;
+          width: auto;
+          object-fit: contain;
+        }
         .backBtn {
           font-size: 12px;
           font-weight: 600;

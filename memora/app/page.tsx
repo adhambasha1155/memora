@@ -89,6 +89,7 @@ const proofs = [
 export default function LandingPage() {
   const [user, setUser] = useState<{ email?: string } | null>(null)
   const [scrolled, setScrolled] = useState(false)
+  const [hoveredId, setHoveredId] = useState<number | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -104,21 +105,44 @@ export default function LandingPage() {
       <div className="pageContent">
         <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
           <div className="navInner">
-            <span className="navBrand">Memora</span>
+            <span className="navBrand">
+              <img src="/memora-logo.png" alt="Memora" className="logo" />
+            </span>
             <div className="navActions">
               {user ? (
-                <Link href="/dashboard" className="btnPrimary">
-                  Your Memora&apos;s
+                <Link href="/dashboard" className="accountIcon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                  </svg>
                 </Link>
               ) : (
-                <>
-                  <Link href="/signup" className="btnGhost">
-                    Sign in
-                  </Link>
-                  <Link href="/signup" className="btnPrimary">
-                    Create account
-                  </Link>
-                </>
+                <Link href="/signup" className="accountIcon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                  </svg>
+                </Link>
               )}
             </div>
           </div>
@@ -141,7 +165,6 @@ export default function LandingPage() {
               />
             ))}
           </div>
-
           <div className="heroContent">
             <div className="heroBadge">✦ Memory websites, beautifully made</div>
             <h1 className="heroTitle">
@@ -189,19 +212,20 @@ export default function LandingPage() {
               Each template is a complete cinematic experience. Pick the one
               that feels right.
             </p>
-
             <div className="sliderWrapper">
               <div className="templatesGrid">
                 {templates.map((t) => (
                   <div
                     key={t.id}
-                    className="templateCard"
+                    className={`templateCard ${hoveredId === t.id ? 'hovered' : ''}`}
                     style={
                       {
                         '--card-bg': t.color,
                         '--card-accent': t.accent,
                       } as React.CSSProperties
                     }
+                    onMouseEnter={() => setHoveredId(t.id)}
+                    onMouseLeave={() => setHoveredId(null)}
                   >
                     <div className="templatePreview">
                       <div className="templateDot" />
@@ -215,10 +239,13 @@ export default function LandingPage() {
                       <div className="templateName">{t.name}</div>
                       <div className="templateMood">{t.mood}</div>
                     </div>
-                    <div className="templateActions">
-                      <button className="templateBtn ghost">Preview</button>
-                      <Link href="/signup" className="templateBtn primary">
-                        Use this
+                    <div className="templateHoverOverlay">
+                      <Link
+                        href="/pick"
+                        className="templateHoverBtn"
+                        style={{ backgroundColor: t.accent }}
+                      >
+                        Preview →
                       </Link>
                     </div>
                   </div>
@@ -232,7 +259,6 @@ export default function LandingPage() {
           <div className="sectionInner">
             <div className="sectionLabel">MADE WITH MEMORA</div>
             <h2 className="sectionTitle">Real moments, real people</h2>
-
             <div className="sliderWrapper">
               <div className="proofGrid">
                 {proofs.map((p) => (
@@ -245,7 +271,6 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-
             <div className="testimonial">
               <div className="quoteMarks"></div>
               <p className="quoteText">
@@ -278,7 +303,9 @@ export default function LandingPage() {
       <footer className="footer">
         <div className="footerInner">
           <div className="footerBrand">
-            <div className="footerLogo">Memora</div>
+            <div className="footerLogo">
+              <img src="/memora-logo.png" alt="Memora" className="logoFooter" />
+            </div>
             <div className="footerTagline">
               Crafting meaningful memories,
               <br />
@@ -348,7 +375,6 @@ export default function LandingPage() {
           min-height: 100vh;
         }
 
-        /* NAVIGATION & HERO */
         .navbar {
           position: fixed;
           top: 0;
@@ -374,33 +400,34 @@ export default function LandingPage() {
           justify-content: space-between;
         }
         .navBrand {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 26px;
-          font-weight: 700;
-          color: var(--main-rose);
+          display: flex;
+          align-items: center;
+        }
+        .logo {
+          height: 63px;
+          width: auto;
+          object-fit: contain;
         }
         .navActions {
           display: flex;
           align-items: center;
           gap: 10px;
         }
-        .btnGhost {
-          padding: 8px 18px;
+        .accountIcon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
           border: 1px solid rgba(194, 24, 91, 0.2);
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 600;
           color: var(--main-rose);
           text-decoration: none;
+          transition: 0.2s ease;
         }
-        .btnPrimary {
-          padding: 8px 18px;
-          background: var(--main-rose);
-          color: #fff;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 600;
-          text-decoration: none;
+        .accountIcon:hover {
+          background: var(--rose-blush);
+          border-color: var(--main-rose);
         }
 
         .hero {
@@ -480,7 +507,6 @@ export default function LandingPage() {
           color: var(--dusty-rose);
           margin-bottom: 32px;
         }
-
         .heroCtas {
           display: flex;
           gap: 14px;
@@ -496,7 +522,6 @@ export default function LandingPage() {
           font-weight: 600;
           text-decoration: none;
           box-shadow: 0 8px 24px rgba(194, 24, 91, 0.25);
-          border: 1px solid transparent;
         }
         .ctaGhost {
           padding: 14px 24px;
@@ -510,7 +535,6 @@ export default function LandingPage() {
           height: 46px;
         }
 
-        /* SECTIONS & POP EFFECT */
         .howSection,
         .templatesSection,
         .proofSection {
@@ -570,7 +594,6 @@ export default function LandingPage() {
         }
 
         .stepCard,
-        .templateCard,
         .proofCard {
           background: rgba(255, 255, 255, 0.6);
           backdrop-filter: blur(8px);
@@ -578,13 +601,26 @@ export default function LandingPage() {
           border-radius: 18px;
           transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
         .stepCard:hover,
-        .templateCard:hover,
         .proofCard:hover {
           transform: translateY(-10px);
           box-shadow: 0 20px 40px rgba(194, 24, 91, 0.1);
           background: rgba(255, 255, 255, 0.9);
+        }
+
+        .templateCard {
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(194, 24, 91, 0.08);
+          border-radius: 18px;
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          width: 220px;
+          position: relative;
+          overflow: hidden;
+        }
+        .templateCard.hovered {
+          transform: translateY(-10px);
+          box-shadow: 0 20px 40px rgba(194, 24, 91, 0.1);
         }
 
         .stepsGrid {
@@ -617,10 +653,6 @@ export default function LandingPage() {
           line-height: 1.6;
         }
 
-        .templateCard {
-          width: 220px;
-          overflow: hidden;
-        }
         .templatePreview {
           height: 130px;
           background: var(--card-bg);
@@ -653,7 +685,7 @@ export default function LandingPage() {
           width: 20px;
         }
         .templateInfo {
-          padding: 14px 16px 10px;
+          padding: 14px 16px 14px;
         }
         .templateName {
           font-family: 'Cormorant Garamond', serif;
@@ -664,33 +696,46 @@ export default function LandingPage() {
           font-size: 10px;
           color: var(--dusty-rose);
         }
-        .templateActions {
-          padding: 0 16px 14px;
-          display: flex;
-          gap: 8px;
-        }
 
-        .templateBtn {
-          flex: 1;
-          height: 32px;
-          border-radius: 8px;
-          font-size: 11px;
-          font-weight: 600;
-          border: none;
-          cursor: pointer;
-          transition: 0.2s;
+        .templateHoverOverlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(44, 26, 32, 0.5);
+          backdrop-filter: blur(2px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
         }
-        .templateBtn.ghost {
-          background: var(--rose-blush);
-          color: var(--main-rose);
+        .templateCard.hovered .templateHoverOverlay {
+          opacity: 1;
+          pointer-events: auto;
         }
-        .templateBtn.primary {
-          background: var(--main-rose);
+        .templateHoverBtn {
           color: #fff;
+          border: none;
+          padding: 16px 32px;
+          border-radius: 999px;
+          font-size: 14px;
+          font-family: 'DM Sans', sans-serif;
+          font-weight: 700;
+          cursor: pointer;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transform: translateY(12px);
+          transition:
+            transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+            box-shadow 0.3s ease;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+          -webkit-appearance: none;
+          letter-spacing: 0.02em;
         }
-        .templateBtn:hover {
-          transform: scale(1.05);
-          filter: brightness(1.1);
+        .templateCard.hovered .templateHoverBtn {
+          transform: translateY(0);
         }
 
         .proofCard {
@@ -745,7 +790,6 @@ export default function LandingPage() {
           font-weight: 500;
         }
 
-        /* Smaller, Responsive Bottom CTA Box[cite: 1] */
         .ctaSection {
           padding: 60px 24px 100px;
         }
@@ -804,10 +848,18 @@ export default function LandingPage() {
           padding-bottom: 40px;
         }
         .footerLogo {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 24px;
-          color: #fff;
           margin-bottom: 10px;
+        }
+        .logoFooter {
+          height: 28px;
+          width: auto;
+          object-fit: contain;
+          opacity: 0.9;
+        }
+        .footerTagline {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.4);
+          line-height: 1.6;
         }
         .footerCols {
           display: flex;
@@ -837,13 +889,12 @@ export default function LandingPage() {
         }
 
         @media (max-width: 768px) {
-          /* Mobile Overrides for CTA Box[cite: 1] */
           .ctaInner {
             flex-direction: column;
             text-align: center;
             padding: 32px 24px;
             gap: 24px;
-            max-width: 340px; /* Force a smaller width on mobile */
+            max-width: 340px;
           }
           .ctaTitle {
             font-size: 26px;
@@ -851,10 +902,6 @@ export default function LandingPage() {
           .ctaBigBtn {
             width: 100%;
             text-align: center;
-          }
-
-          .navActions .btnGhost {
-            display: none;
           }
           .heroCtas {
             flex-direction: column;

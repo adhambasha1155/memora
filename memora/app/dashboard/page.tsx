@@ -107,7 +107,7 @@ export default function DashboardPage() {
       <nav className="dashNav">
         <div className="dashNavInner">
           <Link href="/" className="dashBrand">
-            Memora
+            <img src="/memora-logo.png" alt="Memora" className="logo" />
           </Link>
           <div className="dashNavRight">
             <div className="dashUser">
@@ -130,7 +130,7 @@ export default function DashboardPage() {
           <div className="dashHeader">
             <div>
               <h1 className="dashGreeting">
-                Hi, <span>{profile?.display_name || profile?.username}</span> 👋
+                Hi, <span>{profile?.display_name || profile?.username}</span>
               </h1>
               <p className="dashSub">
                 {sites.length === 0
@@ -315,23 +315,26 @@ const dashStyles = `
     z-index: 50;
   }
 
-  .dashNavInner {
-    max-width: 1000px;
-    margin: 0 auto;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+.dashNavInner {
+  max-width: 1100px;
+  margin: 0 auto;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
   .dashBrand {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--main-rose);
-    text-decoration: none;
-    letter-spacing: 0.02em;
-  }
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 63px;
+  width: auto;
+  object-fit: contain;
+}
 
   .dashNavRight {
     display: flex;

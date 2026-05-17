@@ -36,7 +36,6 @@ export async function middleware(request: NextRequest) {
 
   const protectedRoutes = [
     '/dashboard',
-    '/pick',
     '/create',
     '/edit',
     '/onboarding',
@@ -68,7 +67,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/pick/:path*',
     '/create/:path*',
     '/edit/:path*',
     '/onboarding/:path*',

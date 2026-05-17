@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/app/lib/supabase'
 
 const TEMPLATES = [
   {
@@ -74,14 +75,25 @@ const TEMPLATES = [
 
 export default function PickPage() {
   const [hoveredId, setHoveredId] = useState<number | null>(null)
-  const [scrolled, setScrolled] = useState(false) // ← NEW
+  const [scrolled, setScrolled] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const router = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', handleScroll)
+    supabase.auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user))
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  function handleChoose(templateId: number) {
+    if (isLoggedIn) {
+      router.push(`/create/${templateId}`)
+    } else {
+      router.push('/signup')
+    }
+  }
 
   return (
     <main className="pickPage">
@@ -91,8 +103,8 @@ export default function PickPage() {
           <Link href="/" className="dashBrand">
             <img src="/memora-logo.png" alt="Memora" className="logo" />
           </Link>
-          <Link href="/dashboard" className="backBtn">
-            ← Back to account
+          <Link href={isLoggedIn ? '/dashboard' : '/'} className="backBtn">
+            {isLoggedIn ? '← Back to account' : '← Home'}
           </Link>
         </div>
       </nav>
@@ -181,7 +193,7 @@ export default function PickPage() {
                   <button
                     className="useBtn"
                     style={{ background: t.accent }}
-                    onClick={() => router.push(`/create/${t.id}`)}
+                    onClick={() => handleChoose(t.id)}
                   >
                     Use this template →
                   </button>
@@ -209,7 +221,7 @@ export default function PickPage() {
                   color: hoveredId === t.id ? '#fff' : t.accent,
                   borderColor: t.accent,
                 }}
-                onClick={() => router.push(`/create/${t.id}`)}
+                onClick={() => handleChoose(t.id)}
               >
                 Choose {t.name}
               </button>
@@ -286,7 +298,7 @@ export default function PickPage() {
         }
 
         .logo {
-          height: 63px;
+          height: 56px;
           width: auto;
           object-fit: contain;
         }

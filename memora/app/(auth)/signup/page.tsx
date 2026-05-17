@@ -134,6 +134,11 @@ export default function AuthPage() {
   return (
     <main className="authPage">
       <section className="authShell">
+        <div className="backRow">
+          <button className="backBtn" type="button" onClick={() => router.push('/')} aria-label="Back to home">
+            <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          </button>
+        </div>
         <div className="brand">
           <img src="/memora-logo.png" alt="Memora" className="logo" />
         </div>
@@ -236,9 +241,12 @@ export default function AuthPage() {
                     <button
                       className="togglePass"
                       type="button"
+                      aria-label={showSigninPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowSigninPassword(!showSigninPassword)}
                     >
-                      {showSigninPassword ? '🙈' : '👁'}
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {showSigninPassword ? 'visibility_off' : 'visibility'}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -332,9 +340,12 @@ export default function AuthPage() {
                     <button
                       className="togglePass"
                       type="button"
+                      aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowSignupPassword(!showSignupPassword)}
                     >
-                      {showSignupPassword ? '🙈' : '👁'}
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {showSignupPassword ? 'visibility_off' : 'visibility'}
+                      </span>
                     </button>
                   </div>
                   <div className="helper">
@@ -371,6 +382,13 @@ export default function AuthPage() {
           </div>
         </div>
       </section>
+
+      <style jsx global>{`
+        body {
+          background: #fdf5f7 !important;
+          padding-bottom: 0 !important;
+        }
+      `}</style>
 
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
@@ -419,13 +437,42 @@ export default function AuthPage() {
           align-items: center;
         }
 
+        .backRow {
+          width: 100%;
+          margin-bottom: 12px;
+        }
+
+        .backBtn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          background: rgba(255, 255, 255, 0.7);
+          border: 1px solid rgba(194, 24, 91, 0.12);
+          border-radius: 50%;
+          color: var(--dusty-rose);
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .backBtn:hover {
+          background: var(--rose-blush);
+          border-color: var(--main-rose);
+          color: var(--main-rose);
+        }
+
+        .backBtn .material-symbols-outlined {
+          font-size: 18px;
+        }
+
         .brand {
           text-align: center;
           margin-bottom: 0px;
         }
 
         .logo {
-          height: 63px;
+          height: 56px;
           width: auto;
           object-fit: contain;
           display: block;
@@ -478,7 +525,7 @@ export default function AuthPage() {
         }
 
         .switchBtn {
-          height: 30px;
+          height: 36px;
           border: none;
           border-radius: 999px;
           background: transparent;
@@ -497,7 +544,7 @@ export default function AuthPage() {
 
         .googleBtn {
           width: 100%;
-          height: 38px;
+          min-height: 44px;
           border: 1px solid rgba(194, 24, 91, 0.15);
           border-radius: 10px;
           background: #fff;
@@ -602,14 +649,20 @@ export default function AuthPage() {
           right: 6px;
           top: 50%;
           transform: translateY(-50%);
-          width: 25px;
-          height: 25px;
+          width: 32px;
+          height: 32px;
           border: none;
           border-radius: 7px;
           background: rgba(249, 228, 236, 0.86);
           color: var(--main-rose);
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           font-size: 10px;
+        }
+        .togglePass .material-symbols-outlined {
+          font-size: 16px;
         }
 
         .helper {
@@ -665,9 +718,9 @@ export default function AuthPage() {
 
         .submitBtn {
           width: 100%;
-          height: 38px;
+          min-height: 44px;
           border: none;
-          border-radius: 10px;
+          border-radius: 999px;
           background: var(--main-rose);
           color: #fff;
           font-size: 12px;

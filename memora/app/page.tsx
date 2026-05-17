@@ -39,6 +39,9 @@ const templates = [
     mood: 'Dark & emotional',
     color: '#1a0a0a',
     accent: '#c2185b',
+    textColor: '#fff',
+    particles: ['✦', '✧', '★'],
+    previewLines: ['#c2185b', '#7a1733', '#2c0a14'],
   },
   {
     id: 2,
@@ -46,6 +49,9 @@ const templates = [
     mood: 'Soft & warm',
     color: '#fff0f5',
     accent: '#e91e8c',
+    textColor: '#2c1a20',
+    particles: ['♥', '✿', '❀'],
+    previewLines: ['#f9c8d8', '#e91e8c', '#f9e4ec'],
   },
   {
     id: 3,
@@ -53,6 +59,9 @@ const templates = [
     mood: 'Bright & fun',
     color: '#fff8e1',
     accent: '#ff6b6b',
+    textColor: '#2c1a20',
+    particles: ['🎉', '⭐', '✨'],
+    previewLines: ['#ffd93d', '#ff6b6b', '#6bcb77'],
   },
   {
     id: 4,
@@ -60,6 +69,9 @@ const templates = [
     mood: 'Clean & refined',
     color: '#f8f4f0',
     accent: '#8b6f5e',
+    textColor: '#2c1a20',
+    particles: ['◆', '◇', '▪'],
+    previewLines: ['#d4c4b8', '#8b6f5e', '#f0e8e0'],
   },
   {
     id: 5,
@@ -67,6 +79,9 @@ const templates = [
     mood: 'Ultra clean',
     color: '#fafafa',
     accent: '#333',
+    textColor: '#1a1a1a',
+    particles: ['—', '·', '○'],
+    previewLines: ['#333', '#999', '#ddd'],
   },
 ]
 
@@ -218,35 +233,74 @@ export default function LandingPage() {
                   <div
                     key={t.id}
                     className={`templateCard ${hoveredId === t.id ? 'hovered' : ''}`}
-                    style={
-                      {
-                        '--card-bg': t.color,
-                        '--card-accent': t.accent,
-                      } as React.CSSProperties
-                    }
                     onMouseEnter={() => setHoveredId(t.id)}
                     onMouseLeave={() => setHoveredId(null)}
+                    onClick={() => router.push('/pick')}
                   >
-                    <div className="templatePreview">
-                      <div className="templateDot" />
-                      <div className="templateLines">
-                        <div className="templateLine long" />
-                        <div className="templateLine short" />
-                        <div className="templateLine medium" />
+                    <div
+                      className="templatePreview"
+                      style={{ background: t.color }}
+                    >
+                      <div className="tplPreviewLines">
+                        {t.previewLines.map((lineColor, i) => (
+                          <div
+                            key={i}
+                            className="tplPreviewLine"
+                            style={{
+                              background: lineColor,
+                              width: i === 0 ? '60%' : i === 1 ? '40%' : '50%',
+                              opacity: hoveredId === t.id ? 1 : 0.5,
+                              transitionDelay: `${i * 0.08}s`,
+                              transform:
+                                hoveredId === t.id
+                                  ? 'scaleX(1.1)'
+                                  : 'scaleX(1)',
+                            }}
+                          />
+                        ))}
+                      </div>
+
+                      <div className="tplParticlesWrap">
+                        {t.particles.map((p, i) => (
+                          <span
+                            key={i}
+                            className={`tplParticle tp${i}`}
+                            style={{
+                              color: t.accent,
+                              animationPlayState:
+                                hoveredId === t.id ? 'running' : 'paused',
+                            }}
+                          >
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="tplMock">
+                        <div
+                          className="tplMockDot"
+                          style={{ background: t.accent }}
+                        />
+                        <div className="tplMockText">
+                          <div
+                            className="tplMockLine long"
+                            style={{ background: t.accent, opacity: 0.7 }}
+                          />
+                          <div
+                            className="tplMockLine short"
+                            style={{ background: t.accent, opacity: 0.4 }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="tplWatermark" style={{ color: t.accent }}>
+                        {t.name}
                       </div>
                     </div>
+
                     <div className="templateInfo">
                       <div className="templateName">{t.name}</div>
                       <div className="templateMood">{t.mood}</div>
-                    </div>
-                    <div className="templateHoverOverlay">
-                      <Link
-                        href="/pick"
-                        className="templateHoverBtn"
-                        style={{ backgroundColor: t.accent }}
-                      >
-                        Preview →
-                      </Link>
                     </div>
                   </div>
                 ))}
@@ -271,6 +325,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
+
             <div className="testimonial">
               <div className="quoteMarks"></div>
               <p className="quoteText">
@@ -608,6 +663,7 @@ export default function LandingPage() {
           background: rgba(255, 255, 255, 0.9);
         }
 
+        /* ===== TEMPLATE CARD ===== */
         .templateCard {
           background: rgba(255, 255, 255, 0.6);
           backdrop-filter: blur(8px);
@@ -617,12 +673,145 @@ export default function LandingPage() {
           width: 220px;
           position: relative;
           overflow: hidden;
+          cursor: pointer;
         }
         .templateCard.hovered {
           transform: translateY(-10px);
           box-shadow: 0 20px 40px rgba(194, 24, 91, 0.1);
         }
 
+        .templatePreview {
+          height: 180px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          overflow: hidden;
+          border-radius: 18px 18px 0 0;
+        }
+
+        .tplPreviewLines {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          width: 100%;
+          padding: 0 20px;
+          z-index: 1;
+        }
+        .tplPreviewLine {
+          height: 3px;
+          border-radius: 999px;
+          transition: all 0.4s ease;
+          transform-origin: left;
+        }
+
+        .tplParticlesWrap {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+        }
+        .tplParticle {
+          position: absolute;
+          font-size: 16px;
+          animation: tplParticleFloat 3s ease-in-out infinite;
+          animation-play-state: paused;
+          opacity: 0.6;
+        }
+        .tp0 {
+          top: 18%;
+          left: 14%;
+          animation-delay: 0s;
+        }
+        .tp1 {
+          top: 55%;
+          right: 16%;
+          animation-delay: 0.8s;
+        }
+        .tp2 {
+          bottom: 18%;
+          left: 28%;
+          animation-delay: 1.6s;
+        }
+        @keyframes tplParticleFloat {
+          0%,
+          100% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 0.6;
+          }
+          50% {
+            transform: translateY(-14px) rotate(10deg);
+            opacity: 1;
+          }
+        }
+
+        .tplMock {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 18px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          width: calc(100% - 40px);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          z-index: 1;
+        }
+        .tplMockDot {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .tplMockText {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .tplMockLine {
+          height: 3px;
+          border-radius: 999px;
+        }
+        .tplMockLine.long {
+          width: 70%;
+        }
+        .tplMockLine.short {
+          width: 45%;
+        }
+
+        .tplWatermark {
+          position: absolute;
+          bottom: 10px;
+          right: 14px;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 11px;
+          font-weight: 600;
+          opacity: 0.35;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          z-index: 1;
+        }
+
+        .templateInfo {
+          padding: 14px 16px 14px;
+        }
+        .templateName {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 17px;
+          font-weight: 700;
+          transition: color 0.3s ease;
+        }
+        .templateCard.hovered .templateName {
+          color: var(--main-rose);
+        }
+        .templateMood {
+          font-size: 10px;
+          color: var(--dusty-rose);
+        }
+
+        /* ===== STEPS ===== */
         .stepsGrid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -653,91 +842,7 @@ export default function LandingPage() {
           line-height: 1.6;
         }
 
-        .templatePreview {
-          height: 130px;
-          background: var(--card-bg);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-        }
-        .templateDot {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: var(--card-accent);
-          opacity: 0.7;
-        }
-        .templateLine {
-          height: 3px;
-          border-radius: 999px;
-          background: var(--card-accent);
-          opacity: 0.2;
-        }
-        .templateLine.long {
-          width: 40px;
-        }
-        .templateLine.medium {
-          width: 30px;
-        }
-        .templateLine.short {
-          width: 20px;
-        }
-        .templateInfo {
-          padding: 14px 16px 14px;
-        }
-        .templateName {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 17px;
-          font-weight: 700;
-        }
-        .templateMood {
-          font-size: 10px;
-          color: var(--dusty-rose);
-        }
-
-        .templateHoverOverlay {
-          position: absolute;
-          inset: 0;
-          background: rgba(44, 26, 32, 0.5);
-          backdrop-filter: blur(2px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          pointer-events: none;
-        }
-        .templateCard.hovered .templateHoverOverlay {
-          opacity: 1;
-          pointer-events: auto;
-        }
-        .templateHoverBtn {
-          color: #fff;
-          border: none;
-          padding: 16px 32px;
-          border-radius: 999px;
-          font-size: 14px;
-          font-family: 'DM Sans', sans-serif;
-          font-weight: 700;
-          cursor: pointer;
-          text-decoration: none;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          transform: translateY(12px);
-          transition:
-            transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-            box-shadow 0.3s ease;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-          -webkit-appearance: none;
-          letter-spacing: 0.02em;
-        }
-        .templateCard.hovered .templateHoverBtn {
-          transform: translateY(0);
-        }
-
+        /* ===== PROOF ===== */
         .proofCard {
           width: 240px;
           padding: 28px 24px;
@@ -764,6 +869,7 @@ export default function LandingPage() {
           color: var(--dusty-rose);
         }
 
+        /* ===== TESTIMONIAL ===== */
         .testimonial {
           max-width: 680px;
           margin: 48px auto 0;
@@ -790,6 +896,7 @@ export default function LandingPage() {
           font-weight: 500;
         }
 
+        /* ===== CTA ===== */
         .ctaSection {
           padding: 60px 24px 100px;
         }
@@ -832,6 +939,7 @@ export default function LandingPage() {
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
         }
 
+        /* ===== FOOTER ===== */
         .footer {
           background: var(--dark-plum);
           padding: 60px 24px 24px;
@@ -888,6 +996,7 @@ export default function LandingPage() {
           font-size: 11px;
         }
 
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
           .ctaInner {
             flex-direction: column;
@@ -905,14 +1014,6 @@ export default function LandingPage() {
           }
           .heroCtas {
             flex-direction: column;
-            width: 100%;
-            max-width: 240px;
-            margin: 0 auto;
-          }
-          .ctaPrimary,
-          .ctaGhost {
-            width: 100%;
-            justify-content: center;
           }
         }
       `}</style>

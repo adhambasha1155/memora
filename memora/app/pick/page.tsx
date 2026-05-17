@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -74,12 +74,19 @@ const TEMPLATES = [
 
 export default function PickPage() {
   const [hoveredId, setHoveredId] = useState<number | null>(null)
+  const [scrolled, setScrolled] = useState(false) // ← NEW
   const router = useRouter()
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 40)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <main className="pickPage">
       {/* Navbar */}
-      <nav className="pickNav">
+      <nav className={`pickNav ${scrolled ? 'scrolled' : ''}`}>
         <div className="pickNavInner">
           <Link href="/" className="dashBrand">
             <img src="/memora-logo.png" alt="Memora" className="logo" />
@@ -114,7 +121,6 @@ export default function PickPage() {
             {/* Preview */}
             <div className="previewWrap">
               <div className="previewCard" style={{ background: t.bg }}>
-                {/* Animated preview content */}
                 <div className="previewInner">
                   {/* Decorative lines */}
                   <div className="previewLines">
@@ -241,15 +247,27 @@ export default function PickPage() {
             var(--warm-white);
         }
 
-        /* NAV */
+        /* NAV — transparent by default, frosted on scroll */
         .pickNav {
+          padding: 0 48px;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 50;
+          background: transparent;
+          transition:
+            background 0.3s ease,
+            backdrop-filter 0.3s ease,
+            border-color 0.3s ease,
+            box-shadow 0.3s ease;
+        }
+
+        .pickNav.scrolled {
           background: rgba(253, 245, 247, 0.92);
           backdrop-filter: blur(16px);
           border-bottom: 1px solid rgba(194, 24, 91, 0.08);
-          padding: 0 48px;
-          position: sticky;
-          top: 0;
-          z-index: 50;
+          box-shadow: 0 4px 20px rgba(194, 24, 91, 0.06);
         }
 
         .pickNavInner {
@@ -272,6 +290,7 @@ export default function PickPage() {
           width: auto;
           object-fit: contain;
         }
+
         .backBtn {
           font-size: 12px;
           font-weight: 600;
@@ -284,10 +303,10 @@ export default function PickPage() {
           color: var(--main-rose);
         }
 
-        /* HEADER */
+        /* HEADER — top padding accounts for fixed nav */
         .pickHeader {
           text-align: center;
-          padding: 72px 24px 56px;
+          padding: 136px 24px 56px;
           max-width: 600px;
           margin: 0 auto;
         }
@@ -418,7 +437,6 @@ export default function PickPage() {
           transform: scaleX(1.1);
         }
 
-        /* Particles */
         .particlesWrap {
           position: absolute;
           inset: 0;
@@ -461,7 +479,6 @@ export default function PickPage() {
           }
         }
 
-        /* Mock content */
         .previewMock {
           display: flex;
           align-items: center;
@@ -512,7 +529,6 @@ export default function PickPage() {
           text-transform: uppercase;
         }
 
-        /* Overlay */
         .previewOverlay {
           position: absolute;
           inset: 0;
@@ -547,7 +563,6 @@ export default function PickPage() {
           transform: translateY(0);
         }
 
-        /* Number */
         .templateNumber {
           position: absolute;
           top: -20px;
@@ -631,7 +646,6 @@ export default function PickPage() {
           box-shadow: 0 8px 24px rgba(194, 24, 91, 0.2);
         }
 
-        /* DIVIDER between templates */
         .templateRow:not(:last-child)::after {
           content: '';
           display: block;
@@ -655,6 +669,10 @@ export default function PickPage() {
             padding: 0 20px;
           }
 
+          .pickHeader {
+            padding: 104px 20px 40px;
+          }
+
           .templatesList {
             padding: 0 20px 80px;
             gap: 56px;
@@ -670,7 +688,6 @@ export default function PickPage() {
           .previewCard {
             height: 260px;
           }
-
           .templateName {
             font-size: 36px;
           }

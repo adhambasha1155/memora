@@ -31,8 +31,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [scrolled, setScrolled] = useState(false) // ← NEW
 
   useEffect(() => {
+    // ── scroll listener ──────────────────────────────────────────
+    const handleScroll = () => setScrolled(window.scrollY > 40)
+    window.addEventListener('scroll', handleScroll)
+    // ─────────────────────────────────────────────────────────────
+
     async function load() {
       const {
         data: { user },
@@ -60,6 +66,8 @@ export default function DashboardPage() {
       setLoading(false)
     }
     load()
+
+    return () => window.removeEventListener('scroll', handleScroll) // ← cleanup
   }, [])
 
   async function handleLogout() {
@@ -103,8 +111,8 @@ export default function DashboardPage() {
 
   return (
     <main className="dashPage">
-      {/* Navbar */}
-      <nav className="dashNav">
+      {/* Navbar — scrolled class added here */}
+      <nav className={`dashNav ${scrolled ? 'scrolled' : ''}`}>
         <div className="dashNavInner">
           <Link href="/" className="dashBrand">
             <img src="/memora-logo.png" alt="Memora" className="logo" />
@@ -304,37 +312,46 @@ const dashStyles = `
     to { transform: rotate(360deg); }
   }
 
-  /* NAVBAR */
+  /* NAVBAR — transparent by default, frosted on scroll */
   .dashNav {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(194, 24, 91, 0.08);
     padding: 0 24px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 50;
+    background: transparent;
+    transition: background 0.3s ease, backdrop-filter 0.3s ease,
+                border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
-.dashNavInner {
-  max-width: 1100px;
-  margin: 0 auto;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+  .dashNav.scrolled {
+    background: rgba(253, 245, 247, 0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(194, 24, 91, 0.08);
+    box-shadow: 0 4px 20px rgba(194, 24, 91, 0.06);
+  }
+
+  .dashNavInner {
+    max-width: 1100px;
+    margin: 0 auto;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
   .dashBrand {
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-}
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+  }
 
-.logo {
-  height: 63px;
-  width: auto;
-  object-fit: contain;
-}
+  .logo {
+    height: 63px;
+    width: auto;
+    object-fit: contain;
+  }
 
   .dashNavRight {
     display: flex;
@@ -386,9 +403,9 @@ const dashStyles = `
     background: var(--rose-blush);
   }
 
-  /* CONTENT */
+  /* CONTENT — top padding to clear the fixed navbar */
   .dashContent {
-    padding: 40px 24px 80px;
+    padding: 104px 24px 80px;
   }
 
   .dashInner {
@@ -440,7 +457,7 @@ const dashStyles = `
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   .siteCard:hover {
@@ -472,7 +489,7 @@ const dashStyles = `
     letter-spacing: 0.04em;
   }
 
-  .siteStatus.live { color: #2e7d32; }
+  .siteStatus.live  { color: #2e7d32; }
   .siteStatus.draft { color: var(--dusty-rose); }
 
   .siteCardBody {
@@ -512,9 +529,7 @@ const dashStyles = `
     font-weight: 400;
   }
 
-  .statIcon {
-    font-size: 12px;
-  }
+  .statIcon { font-size: 12px; }
 
   .siteCardActions {
     display: flex;
@@ -542,7 +557,6 @@ const dashStyles = `
     border: 1px solid rgba(194, 24, 91, 0.2);
     color: var(--main-rose);
   }
-
   .siteActionBtn.copy:hover {
     background: var(--rose-blush);
     border-color: var(--main-rose);
@@ -553,7 +567,6 @@ const dashStyles = `
     border: 1px solid var(--main-rose);
     color: #fff;
   }
-
   .siteActionBtn.edit:hover {
     background: var(--rose-dark);
     border-color: var(--rose-dark);
@@ -564,7 +577,6 @@ const dashStyles = `
     border: 1px solid rgba(194, 24, 91, 0.15);
     color: var(--dusty-rose);
   }
-
   .siteActionBtn.delete:hover {
     border-color: #d32f2f;
     color: #d32f2f;
@@ -581,10 +593,7 @@ const dashStyles = `
     margin-bottom: 32px;
   }
 
-  .emptyEmoji {
-    font-size: 40px;
-    margin-bottom: 14px;
-  }
+  .emptyEmoji  { font-size: 40px; margin-bottom: 14px; }
 
   .emptyTitle {
     font-family: 'Cormorant Garamond', serif;
@@ -646,7 +655,7 @@ const dashStyles = `
 
   @keyframes fadeIn {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
   }
 
   .modalCard {
@@ -662,13 +671,10 @@ const dashStyles = `
 
   @keyframes scaleIn {
     from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    to   { transform: scale(1);    opacity: 1; }
   }
 
-  .modalEmoji {
-    font-size: 32px;
-    margin-bottom: 14px;
-  }
+  .modalEmoji  { font-size: 32px; margin-bottom: 14px; }
 
   .modalTitle {
     font-family: 'Cormorant Garamond', serif;
@@ -706,7 +712,6 @@ const dashStyles = `
     border: 1px solid rgba(194, 24, 91, 0.2);
     color: var(--dusty-rose);
   }
-
   .modalBtn.cancel:hover {
     border-color: var(--main-rose);
     color: var(--main-rose);
@@ -717,15 +722,12 @@ const dashStyles = `
     border: none;
     color: #fff;
   }
-
-  .modalBtn.confirm:hover {
-    background: #b71c1c;
-  }
+  .modalBtn.confirm:hover { background: #b71c1c; }
 
   @media (max-width: 640px) {
-    .dashGreeting { font-size: 28px; }
-    .sitesGrid { grid-template-columns: 1fr; }
-    .siteCardActions { flex-wrap: wrap; }
-    .dashUsername { display: none; }
+    .dashGreeting      { font-size: 28px; }
+    .sitesGrid         { grid-template-columns: 1fr; }
+    .siteCardActions   { flex-wrap: wrap; }
+    .dashUsername      { display: none; }
   }
 `

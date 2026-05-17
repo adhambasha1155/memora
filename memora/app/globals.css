@@ -20,7 +20,9 @@
 
 html,
 body {
-  background: #fdf5f7;
+  margin: 0;
+  padding: 0;
+  background: #2c1a20;
 }
 
 body {

@@ -137,7 +137,6 @@ export default function AuthPage() {
         <div className="backRow">
           <button className="backBtn" type="button" onClick={() => router.push('/')} aria-label="Back to home">
             <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-            Back
           </button>
         </div>
         <div className="brand">
@@ -384,6 +383,13 @@ export default function AuthPage() {
         </div>
       </section>
 
+      <style jsx global>{`
+        body {
+          background: #fdf5f7 !important;
+          padding-bottom: 0 !important;
+        }
+      `}</style>
+
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
@@ -439,25 +445,25 @@ export default function AuthPage() {
         .backBtn {
           display: inline-flex;
           align-items: center;
-          gap: 4px;
-          background: transparent;
-          border: none;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          background: rgba(255, 255, 255, 0.7);
+          border: 1px solid rgba(194, 24, 91, 0.12);
+          border-radius: 50%;
           color: var(--dusty-rose);
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          font-weight: 600;
           cursor: pointer;
-          padding: 6px 4px;
-          border-radius: 8px;
-          transition: color 0.2s ease;
+          transition: 0.2s ease;
         }
 
         .backBtn:hover {
+          background: var(--rose-blush);
+          border-color: var(--main-rose);
           color: var(--main-rose);
         }
 
         .backBtn .material-symbols-outlined {
-          font-size: 16px;
+          font-size: 18px;
         }
 
         .brand {

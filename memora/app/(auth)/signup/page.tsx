@@ -134,6 +134,12 @@ export default function AuthPage() {
   return (
     <main className="authPage">
       <section className="authShell">
+        <div className="backRow">
+          <button className="backBtn" type="button" onClick={() => router.push('/')} aria-label="Back to home">
+            <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+            Back
+          </button>
+        </div>
         <div className="brand">
           <img src="/memora-logo.png" alt="Memora" className="logo" />
         </div>
@@ -425,13 +431,42 @@ export default function AuthPage() {
           align-items: center;
         }
 
+        .backRow {
+          width: 100%;
+          margin-bottom: 12px;
+        }
+
+        .backBtn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: transparent;
+          border: none;
+          color: var(--dusty-rose);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          padding: 6px 4px;
+          border-radius: 8px;
+          transition: color 0.2s ease;
+        }
+
+        .backBtn:hover {
+          color: var(--main-rose);
+        }
+
+        .backBtn .material-symbols-outlined {
+          font-size: 16px;
+        }
+
         .brand {
           text-align: center;
           margin-bottom: 0px;
         }
 
         .logo {
-          height: 36px;
+          height: 56px;
           width: auto;
           object-fit: contain;
           display: block;

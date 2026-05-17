@@ -359,7 +359,7 @@ const dashStyles = `
   }
 
   .logo {
-    height: 36px;
+    height: 56px;
     width: auto;
     object-fit: contain;
   }

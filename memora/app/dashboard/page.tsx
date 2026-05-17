@@ -177,11 +177,11 @@ export default function DashboardPage() {
 
                   <div className="siteCardStats">
                     <div className="siteStat">
-                      <span className="statIcon">👁</span>
+                      <span className="material-symbols-outlined statIcon" aria-hidden="true">visibility</span>
                       <span>{site.view_count} views</span>
                     </div>
                     <div className="siteStat">
-                      <span className="statIcon">📅</span>
+                      <span className="material-symbols-outlined statIcon" aria-hidden="true">calendar_today</span>
                       <span>
                         {new Date(site.created_at).toLocaleDateString('en-GB', {
                           day: 'numeric',
@@ -196,20 +196,28 @@ export default function DashboardPage() {
                     <button
                       className="siteActionBtn copy"
                       onClick={() => copyLink(site.slug)}
+                      aria-label={copied === site.slug ? 'Link copied' : 'Copy link'}
                     >
-                      {copied === site.slug ? '✓ Copied' : '🔗 Copy link'}
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {copied === site.slug ? 'check' : 'link'}
+                      </span>
+                      <span aria-live="polite" aria-atomic="true">
+                        {copied === site.slug ? 'Copied' : 'Copy link'}
+                      </span>
                     </button>
                     <Link
                       href={`/edit/${site.id}`}
                       className="siteActionBtn edit"
                     >
-                      ✏ Edit
+                      <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                      Edit
                     </Link>
                     <button
                       className="siteActionBtn delete"
                       onClick={() => setDeleteId(site.id)}
+                      aria-label="Delete this site"
                     >
-                      🗑 Delete
+                      <span className="material-symbols-outlined" aria-hidden="true">delete</span>
                     </button>
                   </div>
                 </div>
@@ -223,6 +231,9 @@ export default function DashboardPage() {
                 Create your first cinematic memory website and share it with
                 someone special.
               </p>
+              <Link href="/pick" className="emptyStateBtn">
+                Create your first Memora
+              </Link>
             </div>
           )}
 
@@ -348,7 +359,7 @@ const dashStyles = `
   }
 
   .logo {
-    height: 63px;
+    height: 36px;
     width: auto;
     object-fit: contain;
   }
@@ -385,7 +396,8 @@ const dashStyles = `
   }
 
   .logoutBtn {
-    padding: 6px 14px;
+    padding: 0 16px;
+    min-height: 44px;
     border: 1px solid rgba(194, 24, 91, 0.2);
     border-radius: 999px;
     background: transparent;
@@ -529,7 +541,7 @@ const dashStyles = `
     font-weight: 400;
   }
 
-  .statIcon { font-size: 12px; }
+  .statIcon { font-size: 14px !important; }
 
   .siteCardActions {
     display: flex;
@@ -538,7 +550,7 @@ const dashStyles = `
 
   .siteActionBtn {
     flex: 1;
-    height: 32px;
+    min-height: 44px;
     border-radius: 999px;
     font-size: 11px;
     font-weight: 600;
@@ -550,6 +562,10 @@ const dashStyles = `
     gap: 4px;
     transition: 0.2s ease;
     text-decoration: none;
+  }
+
+  .siteActionBtn .material-symbols-outlined {
+    font-size: 16px;
   }
 
   .siteActionBtn.copy {
@@ -573,9 +589,11 @@ const dashStyles = `
   }
 
   .siteActionBtn.delete {
+    flex: 0 0 44px;
     background: transparent;
-    border: 1px solid rgba(194, 24, 91, 0.15);
-    color: var(--dusty-rose);
+    border: 1px solid rgba(194, 24, 91, 0.12);
+    color: rgba(138, 100, 112, 0.5);
+    padding: 0;
   }
   .siteActionBtn.delete:hover {
     border-color: #d32f2f;
@@ -608,8 +626,26 @@ const dashStyles = `
     color: var(--dusty-rose);
     font-weight: 300;
     max-width: 340px;
-    margin: 0 auto;
+    margin: 0 auto 24px;
     line-height: 1.6;
+  }
+
+  .emptyStateBtn {
+    display: inline-block;
+    padding: 14px 28px;
+    background: var(--main-rose);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 8px 24px rgba(194, 24, 91, 0.2);
+    transition: 0.2s ease;
+  }
+  .emptyStateBtn:hover {
+    background: var(--rose-dark);
+    transform: translateY(-2px);
   }
 
   /* CREATE BUTTON */
@@ -698,8 +734,8 @@ const dashStyles = `
 
   .modalBtn {
     flex: 1;
-    height: 38px;
-    border-radius: 10px;
+    min-height: 44px;
+    border-radius: 999px;
     font-size: 12px;
     font-weight: 600;
     font-family: 'DM Sans', sans-serif;

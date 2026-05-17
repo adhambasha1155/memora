@@ -236,9 +236,12 @@ export default function AuthPage() {
                     <button
                       className="togglePass"
                       type="button"
+                      aria-label={showSigninPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowSigninPassword(!showSigninPassword)}
                     >
-                      {showSigninPassword ? '🙈' : '👁'}
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {showSigninPassword ? 'visibility_off' : 'visibility'}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -332,9 +335,12 @@ export default function AuthPage() {
                     <button
                       className="togglePass"
                       type="button"
+                      aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowSignupPassword(!showSignupPassword)}
                     >
-                      {showSignupPassword ? '🙈' : '👁'}
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {showSignupPassword ? 'visibility_off' : 'visibility'}
+                      </span>
                     </button>
                   </div>
                   <div className="helper">
@@ -425,7 +431,7 @@ export default function AuthPage() {
         }
 
         .logo {
-          height: 63px;
+          height: 36px;
           width: auto;
           object-fit: contain;
           display: block;
@@ -478,7 +484,7 @@ export default function AuthPage() {
         }
 
         .switchBtn {
-          height: 30px;
+          height: 36px;
           border: none;
           border-radius: 999px;
           background: transparent;
@@ -497,7 +503,7 @@ export default function AuthPage() {
 
         .googleBtn {
           width: 100%;
-          height: 38px;
+          min-height: 44px;
           border: 1px solid rgba(194, 24, 91, 0.15);
           border-radius: 10px;
           background: #fff;
@@ -602,14 +608,20 @@ export default function AuthPage() {
           right: 6px;
           top: 50%;
           transform: translateY(-50%);
-          width: 25px;
-          height: 25px;
+          width: 32px;
+          height: 32px;
           border: none;
           border-radius: 7px;
           background: rgba(249, 228, 236, 0.86);
           color: var(--main-rose);
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           font-size: 10px;
+        }
+        .togglePass .material-symbols-outlined {
+          font-size: 16px;
         }
 
         .helper {
@@ -665,9 +677,9 @@ export default function AuthPage() {
 
         .submitBtn {
           width: 100%;
-          height: 38px;
+          min-height: 44px;
           border: none;
-          border-radius: 10px;
+          border-radius: 999px;
           background: var(--main-rose);
           color: #fff;
           font-size: 12px;

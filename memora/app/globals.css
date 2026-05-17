@@ -7,7 +7,7 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #fefccf;
+  --background: #fdf5f7;
   --foreground: #2c1a20;
 }
 
@@ -21,7 +21,7 @@
 html,
 body {
   min-height: 100%;
-  background: #fefccf;
+  background: #fdf5f7;
 }
 
 body {

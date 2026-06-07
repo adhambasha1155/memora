@@ -459,7 +459,7 @@ export default function LandingPage() {
           align-items: center;
         }
         .logo {
-          height: 56px;
+          height: 36px;
           width: auto;
           object-fit: contain;
         }

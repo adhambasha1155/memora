@@ -1,15 +1,29 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useState, useEffect } from 'react'
 import { createClient } from '@/app/lib/supabase'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Loading from '@/app/loading'
 
 export default function ForgotPasswordPage() {
   const supabase = createClient()
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
+  const [authChecking, setAuthChecking] = useState(true)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        router.push('/dashboard')
+      } else {
+        setAuthChecking(false)
+      }
+    })
+  }, [])
 
   function isValidEmail(value: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -33,6 +47,8 @@ export default function ForgotPasswordPage() {
     }
     setSent(true)
   }
+
+  if (authChecking) return <Loading />
 
   return (
     <main className="fpPage">
@@ -110,7 +126,6 @@ export default function ForgotPasswordPage() {
           --rose-dark: #7a1733;
           --dark-plum: #2c1a20;
           --dusty-rose: #8a6470;
-
           min-height: 100vh;
           width: 100%;
           font-family: 'DM Sans', sans-serif;
@@ -138,18 +153,15 @@ export default function ForgotPasswordPage() {
           padding: 22px 14px;
           overflow-x: hidden;
         }
-
         .fpShell {
           width: min(100%, 380px);
         }
-
         .brand {
           text-align: center;
           margin-bottom: 0px;
         }
-
         .logo {
-          height: 73px;
+          height: 63px;
           width: auto;
           object-fit: contain;
           display: block;
@@ -164,11 +176,9 @@ export default function ForgotPasswordPage() {
           box-shadow: 0 18px 44px rgba(194, 24, 91, 0.1);
           backdrop-filter: blur(16px);
         }
-
         .header {
           margin-bottom: 17px;
         }
-
         .title {
           font-family: 'Cormorant Garamond', serif;
           font-size: 30px;
@@ -178,56 +188,45 @@ export default function ForgotPasswordPage() {
           letter-spacing: -0.025em;
           margin-bottom: 5px;
         }
-
         .title span {
           color: var(--main-rose);
         }
-
         .subtitle {
           font-size: 12px;
           line-height: 1.55;
           color: var(--dusty-rose);
           font-weight: 400;
         }
-
         .subtitle strong {
           color: var(--dark-plum);
           font-weight: 600;
         }
-
         .sentState {
           text-align: center;
           padding: 8px 0;
         }
-
         .sentIcon {
           font-size: 32px;
           margin-bottom: 12px;
         }
-
         .sentState .title {
           margin-bottom: 8px;
         }
-
         .sentState .subtitle {
           margin-bottom: 18px;
         }
-
         .backLink {
           color: var(--main-rose);
           text-decoration: none;
           font-size: 11px;
           font-weight: 600;
         }
-
         .backLink:hover {
           text-decoration: underline;
         }
-
         .field {
           margin-bottom: 14px;
         }
-
         .field label {
           display: block;
           font-size: 11px;
@@ -235,11 +234,9 @@ export default function ForgotPasswordPage() {
           color: var(--dark-plum);
           margin-bottom: 6px;
         }
-
         .inputWrap {
           position: relative;
         }
-
         .inputWrap input {
           width: 100%;
           height: 40px;
@@ -254,17 +251,14 @@ export default function ForgotPasswordPage() {
           font-weight: 500;
           transition: 0.22s ease;
         }
-
         .inputWrap input::placeholder {
           color: rgba(138, 100, 112, 0.62);
         }
-
         .inputWrap input:focus {
           border-color: rgba(194, 24, 91, 0.34);
           box-shadow: 0 0 0 3px rgba(194, 24, 91, 0.08);
           background: #fff;
         }
-
         .icon {
           position: absolute;
           right: 12px;
@@ -274,7 +268,6 @@ export default function ForgotPasswordPage() {
           font-size: 13px;
           pointer-events: none;
         }
-
         .error {
           margin-bottom: 12px;
           color: var(--main-rose);
@@ -282,7 +275,6 @@ export default function ForgotPasswordPage() {
           font-weight: 600;
           line-height: 1.45;
         }
-
         .submitBtn {
           width: 100%;
           height: 41px;
@@ -297,19 +289,16 @@ export default function ForgotPasswordPage() {
           box-shadow: 0 12px 24px rgba(194, 24, 91, 0.16);
           transition: 0.22s ease;
         }
-
         .submitBtn:hover {
           transform: translateY(-1px);
           background: var(--rose-dark);
           box-shadow: 0 16px 30px rgba(194, 24, 91, 0.2);
         }
-
         .submitBtn:disabled {
           opacity: 0.65;
           cursor: not-allowed;
           transform: none;
         }
-
         .bottomNote {
           text-align: center;
           margin-top: 13px;
@@ -317,37 +306,26 @@ export default function ForgotPasswordPage() {
           font-size: 10.5px;
           line-height: 1.5;
         }
-
         .inlineLink {
           color: var(--main-rose);
           text-decoration: none;
           font-size: 10.5px;
           font-weight: 600;
         }
-
         .inlineLink:hover {
           text-decoration: underline;
         }
-
         @media (max-width: 420px) {
           .fpPage {
             padding: 16px 12px;
           }
-
-          .brand {
-            font-size: 27px;
-            margin-bottom: 14px;
-          }
-
           .fpCard {
             padding: 21px 16px 16px;
             border-radius: 20px;
           }
-
           .title {
             font-size: 27px;
           }
-
           .inputWrap input,
           .submitBtn {
             height: 39px;

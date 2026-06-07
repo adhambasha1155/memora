@@ -4,6 +4,14 @@ import { useState, useRef, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase'
 import Link from 'next/link'
+import Loading from '@/app/loading'
+const TEMPLATE_NAMES_REVERSE: Record<string, number> = {
+  cinematic: 1,
+  romantic: 2,
+  playful: 3,
+  elegant: 4,
+  minimal: 5,
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface UploadedFile {
@@ -32,9 +40,6 @@ interface FormData {
   inviteSubtitle: string
   inviteCountdownLabel: string
   inviteButtonText: string
-  bgColor: string
-  textColor: string
-  accentColor: string
 }
 
 const TEMPLATE_NAMES: Record<number, string> = {
@@ -62,56 +67,8 @@ const TABS = [
   { id: 2, label: 'Gallery', icon: '🖼' },
   { id: 3, label: 'Message', icon: '✉' },
   { id: 4, label: 'Music', icon: '♪' },
-  { id: 5, label: 'Design', icon: '🎨' },
 ]
 
-// ── Color palettes ────────────────────────────────────────────────────────────
-const BG_COLORS = [
-  { label: 'Cream', value: '#fefccf' },
-  { label: 'Blush', value: '#fdf5f7' },
-  { label: 'Lavender', value: '#f3f0ff' },
-  { label: 'Mint', value: '#f0fdf4' },
-  { label: 'Sky', value: '#f0f9ff' },
-  { label: 'Peach', value: '#fff7ed' },
-  { label: 'Rose', value: '#fff1f2' },
-  { label: 'Sand', value: '#fdf8f0' },
-  { label: 'Midnight', value: '#0f0f1a' },
-  { label: 'Dark Plum', value: '#1a0a0a' },
-  { label: 'Forest', value: '#0a1a0f' },
-  { label: 'Navy', value: '#0a0f1a' },
-  { label: 'White', value: '#ffffff' },
-  { label: 'Off White', value: '#fafafa' },
-  { label: 'Charcoal', value: '#1a1a2e' },
-  { label: 'Slate', value: '#1e293b' },
-]
-
-const TEXT_COLORS = [
-  { label: 'Dark Plum', value: '#2c1a20' },
-  { label: 'Charcoal', value: '#1a1a1a' },
-  { label: 'Navy', value: '#1e293b' },
-  { label: 'Forest', value: '#14532d' },
-  { label: 'White', value: '#ffffff' },
-  { label: 'Cream', value: '#fefccf' },
-  { label: 'Rose', value: '#fdf5f7' },
-  { label: 'Silver', value: '#e2e8f0' },
-]
-
-const ACCENT_COLORS = [
-  { label: 'Rose', value: '#c2185b' },
-  { label: 'Pink', value: '#e91e8c' },
-  { label: 'Coral', value: '#ff6b6b' },
-  { label: 'Gold', value: '#d4a017' },
-  { label: 'Amber', value: '#f59e0b' },
-  { label: 'Teal', value: '#0d9488' },
-  { label: 'Purple', value: '#7c3aed' },
-  { label: 'Blue', value: '#2563eb' },
-  { label: 'Green', value: '#16a34a' },
-  { label: 'Orange', value: '#ea580c' },
-  { label: 'Plum', value: '#7a1733' },
-  { label: 'Indigo', value: '#4338ca' },
-]
-
-// ── Color palettes ────────────────────────────────────────────────────────────
 // ─── Upload to R2 ─────────────────────────────────────────────────────────────
 async function uploadFileToR2(
   file: File,
@@ -137,13 +94,15 @@ async function uploadFileToR2(
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function CreatePage() {
+export default function EditPage() {
   const params = useParams()
   const router = useRouter()
   const supabase = createClient()
-  const templateId = Number(params.templateId)
+  const siteId = params.siteId as string
 
   const [userId, setUserId] = useState<string | null>(null)
+  const [templateId, setTemplateId] = useState<number>(1)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState(0)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -169,20 +128,88 @@ export default function CreatePage() {
     inviteSubtitle: '',
     inviteCountdownLabel: '',
     inviteButtonText: '',
-    bgColor: '#fefccf',
-    textColor: '#2c1a20',
-    accentColor: '#c2185b',
   })
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
+    async function load() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) {
         router.push('/signup')
         return
       }
-      setUserId(data.user.id)
-    })
-  }, [])
+      setUserId(user.id)
+
+      // Load site data
+      const { data: site } = await supabase
+        .from('sites')
+        .select('*')
+        .eq('id', siteId)
+        .eq('user_id', user.id) // security: only owner can edit
+        .maybeSingle()
+
+      if (!site) {
+        router.push('/dashboard')
+        return
+      } // not found or not owner
+
+      setTemplateId(site.template_id)
+      setForm({
+        slug: site.slug || '',
+        recipientName: site.recipient_name || '',
+        occasion: site.occasion || OCCASIONS[0],
+        senderName: site.sender_name || '',
+        message: site.message || '',
+        date: site.date || '',
+        musicUrl: site.music_url || '',
+        giftMessage: site.gift_message || '',
+        giftSubtitle: site.gift_subtitle || '',
+        inviteHeading: site.invite_heading || '',
+        inviteSubtitle: site.invite_subtitle || '',
+        inviteCountdownLabel: site.invite_countdown_label || '',
+        inviteButtonText: site.invite_button_text || '',
+      })
+
+      // Load existing media
+      const { data: media } = await supabase
+        .from('media')
+        .select('*')
+        .eq('site_id', siteId)
+        .order('order_index', { ascending: true })
+
+      if (media) {
+        const journey = media
+          .filter((m) => m.file_type === 'journey_photo')
+          .map((m) => ({
+            id: m.id,
+            file: null as unknown as File,
+            preview: m.file_url,
+            r2Url: m.file_url,
+            uploading: false,
+            title: m.title || '',
+            date: m.date || '',
+            caption: m.caption || '',
+          }))
+        const gallery = media
+          .filter((m) => m.file_type === 'gallery_photo')
+          .map((m) => ({
+            id: m.id,
+            file: null as unknown as File,
+            preview: m.file_url,
+            r2Url: m.file_url,
+            uploading: false,
+            title: m.title || '',
+            caption: m.caption || '',
+          }))
+        setJourneyPhotos(journey)
+        setGalleryPhotos(gallery)
+      }
+
+      setLoading(false)
+    }
+    load()
+  }, [siteId])
 
   function handleSlugChange(val: string) {
     const clean = val
@@ -242,48 +269,54 @@ export default function CreatePage() {
     if (!userId || slugError || !form.slug) return
     setSaving(true)
     try {
-      const { data: site, error: siteErr } = await supabase
+      const { error: siteErr } = await supabase
         .from('sites')
-        .upsert(
-          {
-            user_id: userId,
-            template_id: templateId,
-            slug: form.slug,
-            occasion: form.occasion,
-            recipient_name: form.recipientName,
-            sender_name: form.senderName,
-            message: form.message,
-            music_url: form.musicUrl || null,
-            is_published: false,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id,slug' }
-        )
-        .select()
-        .maybeSingle()
+        .update({
+          slug: form.slug,
+          occasion: form.occasion,
+          recipient_name: form.recipientName,
+          sender_name: form.senderName,
+          message: form.message,
+          music_url: form.musicUrl || null,
+          gift_message: form.giftMessage || null,
+          gift_subtitle: form.giftSubtitle || null,
+          invite_heading: form.inviteHeading || null,
+          invite_subtitle: form.inviteSubtitle || null,
+          invite_countdown_label: form.inviteCountdownLabel || null,
+          invite_button_text: form.inviteButtonText || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', siteId)
+        .eq('user_id', userId)
       if (siteErr) throw siteErr
+
+      // Save media
       const allMedia = [
         ...journeyPhotos
           .filter((p) => p.r2Url)
           .map((p, i) => ({
-            site_id: site!.id,
+            site_id: siteId,
             file_url: p.r2Url!,
             file_type: 'journey_photo',
             order_index: i,
+            title: p.title || null,
+            date: p.date || null,
+            caption: p.caption || null,
           })),
         ...galleryPhotos
           .filter((p) => p.r2Url)
           .map((p, i) => ({
-            site_id: site!.id,
+            site_id: siteId,
             file_url: p.r2Url!,
             file_type: 'gallery_photo',
             order_index: i,
+            title: p.title || null,
+            caption: p.caption || null,
           })),
       ]
-      if (allMedia.length > 0) {
-        await supabase.from('media').delete().eq('site_id', site!.id)
-        await supabase.from('media').insert(allMedia)
-      }
+      await supabase.from('media').delete().eq('site_id', siteId)
+      if (allMedia.length > 0) await supabase.from('media').insert(allMedia)
+
       setSaved(true)
       setShowPreview(true)
       setTimeout(() => setSaved(false), 3000)
@@ -293,16 +326,21 @@ export default function CreatePage() {
       setSaving(false)
     }
   }
+  if (loading) {
+    return <Loading />
+  }
 
   return (
     <div className="shell">
       {/* ── TOP NAV ── */}
       <nav className="topNav">
-        <Link href="/pick" className="navBack">
-          ← Back
+        <Link href="/dashboard" className="navBack">
+          ← Dashboard
         </Link>
         <div className="navCenter">
-          <span className="navTemplate">{TEMPLATE_NAMES[templateId]}</span>
+          <span className="navTemplate">
+            {TEMPLATE_NAMES[templateId]} · Edit
+          </span>
         </div>
         <button
           className={`saveBtn ${saving ? 'loading' : ''} ${saved ? 'saved' : ''}`}
@@ -746,190 +784,6 @@ export default function CreatePage() {
             </div>
           )}
 
-          {/* DESIGN TAB */}
-          {activeTab === 5 && (
-            <div className="section">
-              <h2 className="sectionTitle">Design</h2>
-              <p className="sectionDesc">
-                Customise the colours of your Memora site.
-              </p>
-
-              <div
-                className="designPreview"
-                style={{
-                  background: form.bgColor,
-                  border: `2px solid ${form.accentColor}`,
-                }}
-              >
-                <div
-                  className="designPreviewTitle"
-                  style={{
-                    color: form.textColor,
-                    fontFamily: "'Cormorant Garamond', serif",
-                  }}
-                >
-                  Happy Birthday {form.recipientName || 'Aria'}!
-                </div>
-                <div
-                  className="designPreviewSub"
-                  style={{ color: form.textColor, opacity: 0.6 }}
-                >
-                  A magical celebration filled with wonder...
-                </div>
-                <div
-                  className="designPreviewBtn"
-                  style={{ background: form.accentColor, color: '#fff' }}
-                >
-                  {form.inviteButtonText || 'Enter the Magic'} ✦
-                </div>
-              </div>
-
-              <div className="colorSection">
-                <div className="colorSectionLabel">Background colour</div>
-                <div className="colorGrid">
-                  {BG_COLORS.map((c) => (
-                    <button
-                      key={c.value}
-                      className="colorSwatch"
-                      title={c.label}
-                      style={{
-                        background: c.value,
-                        border:
-                          form.bgColor === c.value
-                            ? '3px solid #c2185b'
-                            : '2px solid rgba(0,0,0,0.08)',
-                        transform:
-                          form.bgColor === c.value ? 'scale(1.15)' : 'scale(1)',
-                      }}
-                      onClick={() =>
-                        setForm((f) => ({ ...f, bgColor: c.value }))
-                      }
-                    />
-                  ))}
-                  <label className="colorSwatchCustom">
-                    <input
-                      type="color"
-                      value={form.bgColor}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, bgColor: e.target.value }))
-                      }
-                      style={{
-                        opacity: 0,
-                        position: 'absolute',
-                        width: 0,
-                        height: 0,
-                      }}
-                    />
-                    <span>+</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="colorSection">
-                <div className="colorSectionLabel">Text colour</div>
-                <div className="colorGrid">
-                  {TEXT_COLORS.map((c) => (
-                    <button
-                      key={c.value}
-                      className="colorSwatch"
-                      title={c.label}
-                      style={{
-                        background: c.value,
-                        border:
-                          form.textColor === c.value
-                            ? '3px solid #c2185b'
-                            : '2px solid rgba(0,0,0,0.08)',
-                        transform:
-                          form.textColor === c.value
-                            ? 'scale(1.15)'
-                            : 'scale(1)',
-                      }}
-                      onClick={() =>
-                        setForm((f) => ({ ...f, textColor: c.value }))
-                      }
-                    />
-                  ))}
-                  <label className="colorSwatchCustom">
-                    <input
-                      type="color"
-                      value={form.textColor}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, textColor: e.target.value }))
-                      }
-                      style={{
-                        opacity: 0,
-                        position: 'absolute',
-                        width: 0,
-                        height: 0,
-                      }}
-                    />
-                    <span>+</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="colorSection">
-                <div className="colorSectionLabel">
-                  Accent colour{' '}
-                  <span className="hint">(buttons & highlights)</span>
-                </div>
-                <div className="colorGrid">
-                  {ACCENT_COLORS.map((c) => (
-                    <button
-                      key={c.value}
-                      className="colorSwatch"
-                      title={c.label}
-                      style={{
-                        background: c.value,
-                        border:
-                          form.accentColor === c.value
-                            ? '3px solid #2c1a20'
-                            : '2px solid rgba(0,0,0,0.08)',
-                        transform:
-                          form.accentColor === c.value
-                            ? 'scale(1.15)'
-                            : 'scale(1)',
-                      }}
-                      onClick={() =>
-                        setForm((f) => ({ ...f, accentColor: c.value }))
-                      }
-                    />
-                  ))}
-                  <label className="colorSwatchCustom">
-                    <input
-                      type="color"
-                      value={form.accentColor}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, accentColor: e.target.value }))
-                      }
-                      style={{
-                        opacity: 0,
-                        position: 'absolute',
-                        width: 0,
-                        height: 0,
-                      }}
-                    />
-                    <span>+</span>
-                  </label>
-                </div>
-              </div>
-
-              <button
-                className="resetColorsBtn"
-                onClick={() =>
-                  setForm((f) => ({
-                    ...f,
-                    bgColor: '#fadadd',
-                    textColor: '#70585b',
-                    accentColor: '#70585b',
-                  }))
-                }
-              >
-                Reset to defaults
-              </button>
-            </div>
-          )}
-
           {/* Bottom navigation */}
           <div className="bottomNav">
             {activeTab > 0 && (
@@ -1116,7 +970,8 @@ export default function CreatePage() {
         }
         .tab {
           flex: 1;
-          padding: 10px 8px;
+          min-width: 60px;
+          padding: 10px 4px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -1651,101 +1506,6 @@ export default function CreatePage() {
         }
         .mobileSaveBtn.saved {
           background: #2e7d32;
-        }
-
-        /* ── DESIGN TAB ── */
-        .designPreview {
-          border-radius: 16px;
-          padding: 20px;
-          margin-bottom: 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          transition: all 0.3s ease;
-        }
-        .designPreviewTitle {
-          font-size: 18px;
-          font-weight: 700;
-          line-height: 1.2;
-        }
-        .designPreviewSub {
-          font-size: 11px;
-          line-height: 1.5;
-        }
-        .designPreviewBtn {
-          display: inline-block;
-          padding: 6px 14px;
-          border-radius: 999px;
-          font-size: 10px;
-          font-weight: 600;
-          width: fit-content;
-          margin-top: 4px;
-        }
-        .colorSection {
-          margin-bottom: 20px;
-        }
-        .colorSectionLabel {
-          font-size: 10px;
-          font-weight: 700;
-          color: var(--dark-plum);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 10px;
-        }
-        .colorGrid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .colorSwatch {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          cursor: pointer;
-          transition:
-            transform 0.2s ease,
-            border 0.2s ease;
-          padding: 0;
-          flex-shrink: 0;
-        }
-        .colorSwatch:hover {
-          transform: scale(1.15);
-        }
-        .colorSwatchCustom {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          border: 2px dashed rgba(194, 24, 91, 0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          font-size: 16px;
-          color: var(--main-rose);
-          position: relative;
-          transition: all 0.2s ease;
-          flex-shrink: 0;
-        }
-        .colorSwatchCustom:hover {
-          border-color: var(--main-rose);
-          background: var(--rose-blush);
-        }
-        .resetColorsBtn {
-          width: 100%;
-          padding: 10px;
-          border: 1.5px solid var(--border);
-          border-radius: 10px;
-          background: transparent;
-          font-size: 12px;
-          color: var(--dusty-rose);
-          font-family: 'DM Sans', sans-serif;
-          cursor: pointer;
-          transition: all 0.2s;
-          margin-top: 4px;
-        }
-        .resetColorsBtn:hover {
-          border-color: var(--main-rose);
-          color: var(--main-rose);
         }
 
         /* ── BOTTOM SHEET ── */

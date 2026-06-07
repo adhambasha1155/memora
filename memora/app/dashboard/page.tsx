@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/app/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Loading from '@/app/loading'
 
 type Profile = {
   username: string
@@ -31,13 +32,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
-  const [scrolled, setScrolled] = useState(false) // ← NEW
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    // ── scroll listener ──────────────────────────────────────────
     const handleScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', handleScroll)
-    // ─────────────────────────────────────────────────────────────
 
     async function load() {
       const {
@@ -67,7 +66,7 @@ export default function DashboardPage() {
     }
     load()
 
-    return () => window.removeEventListener('scroll', handleScroll) // ← cleanup
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   async function handleLogout() {
@@ -97,21 +96,10 @@ export default function DashboardPage() {
     5: 'Minimal',
   }
 
-  if (loading) {
-    return (
-      <main className="dashPage">
-        <div className="loadingState">
-          <div className="spinner" />
-          <p>Loading your memories...</p>
-        </div>
-        <style jsx>{dashStyles}</style>
-      </main>
-    )
-  }
+  if (loading) return <Loading />
 
   return (
     <main className="dashPage">
-      {/* Navbar — scrolled class added here */}
       <nav className={`dashNav ${scrolled ? 'scrolled' : ''}`}>
         <div className="dashNavInner">
           <Link href="/" className="dashBrand">
@@ -131,10 +119,8 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      {/* Content */}
       <div className="dashContent">
         <div className="dashInner">
-          {/* Header */}
           <div className="dashHeader">
             <div>
               <h1 className="dashGreeting">
@@ -148,7 +134,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Sites Grid */}
           {sites.length > 0 ? (
             <div className="sitesGrid">
               {sites.map((site) => (
@@ -177,11 +162,21 @@ export default function DashboardPage() {
 
                   <div className="siteCardStats">
                     <div className="siteStat">
-                      <span className="material-symbols-outlined statIcon" aria-hidden="true">visibility</span>
+                      <span
+                        className="material-symbols-outlined statIcon"
+                        aria-hidden="true"
+                      >
+                        visibility
+                      </span>
                       <span>{site.view_count} views</span>
                     </div>
                     <div className="siteStat">
-                      <span className="material-symbols-outlined statIcon" aria-hidden="true">calendar_today</span>
+                      <span
+                        className="material-symbols-outlined statIcon"
+                        aria-hidden="true"
+                      >
+                        calendar_today
+                      </span>
                       <span>
                         {new Date(site.created_at).toLocaleDateString('en-GB', {
                           day: 'numeric',
@@ -196,9 +191,14 @@ export default function DashboardPage() {
                     <button
                       className="siteActionBtn copy"
                       onClick={() => copyLink(site.slug)}
-                      aria-label={copied === site.slug ? 'Link copied' : 'Copy link'}
+                      aria-label={
+                        copied === site.slug ? 'Link copied' : 'Copy link'
+                      }
                     >
-                      <span className="material-symbols-outlined" aria-hidden="true">
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
                         {copied === site.slug ? 'check' : 'link'}
                       </span>
                       <span aria-live="polite" aria-atomic="true">
@@ -209,7 +209,12 @@ export default function DashboardPage() {
                       href={`/edit/${site.id}`}
                       className="siteActionBtn edit"
                     >
-                      <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
+                        edit
+                      </span>
                       Edit
                     </Link>
                     <button
@@ -217,7 +222,12 @@ export default function DashboardPage() {
                       onClick={() => setDeleteId(site.id)}
                       aria-label="Delete this site"
                     >
-                      <span className="material-symbols-outlined" aria-hidden="true">delete</span>
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
+                        delete
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -237,7 +247,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Create Button */}
           <div className="createBar">
             <Link href="/pick" className="createBtn">
               + Create new Memora
@@ -246,7 +255,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Delete Modal */}
       {deleteId && (
         <div className="modalOverlay" onClick={() => setDeleteId(null)}>
           <div className="modalCard" onClick={(e) => e.stopPropagation()}>
@@ -298,51 +306,20 @@ const dashStyles = `
       var(--warm-white);
   }
 
-  /* LOADING */
-  .loadingState {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    color: var(--dusty-rose);
-    font-size: 13px;
-  }
-
-  .spinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid var(--rose-blush);
-    border-top-color: var(--main-rose);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* NAVBAR — transparent by default, frosted on scroll */
   .dashNav {
     padding: 0 24px;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     z-index: 50;
     background: transparent;
-    transition: background 0.3s ease, backdrop-filter 0.3s ease,
-                border-color 0.3s ease, box-shadow 0.3s ease;
+    transition: background 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
-
   .dashNav.scrolled {
     background: rgba(253, 245, 247, 0.92);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid rgba(194, 24, 91, 0.08);
     box-shadow: 0 4px 20px rgba(194, 24, 91, 0.06);
   }
-
   .dashNavInner {
     max-width: 1100px;
     margin: 0 auto;
@@ -351,419 +328,154 @@ const dashStyles = `
     align-items: center;
     justify-content: space-between;
   }
-
-  .dashBrand {
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-  }
-
-  .logo {
-    height: 56px;
-    width: auto;
-    object-fit: contain;
-  }
-
-  .dashNavRight {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .dashUser {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
+  .dashBrand { text-decoration: none; display: flex; align-items: center; }
+  .logo { height: 36px; width: auto; object-fit: contain; }
+  .dashNavRight { display: flex; align-items: center; gap: 14px; }
+  .dashUser { display: flex; align-items: center; gap: 8px; }
   .dashAvatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: var(--main-rose);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--main-rose); color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
   }
-
-  .dashUsername {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--dark-plum);
-  }
-
+  .dashUsername { font-size: 12px; font-weight: 600; color: var(--dark-plum); }
   .logoutBtn {
-    padding: 0 16px;
-    min-height: 44px;
+    padding: 0 16px; min-height: 44px;
     border: 1px solid rgba(194, 24, 91, 0.2);
-    border-radius: 999px;
-    background: transparent;
-    color: var(--dusty-rose);
-    font-size: 11px;
-    font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: 0.2s ease;
+    border-radius: 999px; background: transparent;
+    color: var(--dusty-rose); font-size: 11px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: 0.2s ease;
   }
+  .logoutBtn:hover { border-color: var(--main-rose); color: var(--main-rose); background: var(--rose-blush); }
 
-  .logoutBtn:hover {
-    border-color: var(--main-rose);
-    color: var(--main-rose);
-    background: var(--rose-blush);
-  }
-
-  /* CONTENT — top padding to clear the fixed navbar */
-  .dashContent {
-    padding: 104px 24px 80px;
-  }
-
-  .dashInner {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-
-  /* HEADER */
-  .dashHeader {
-    margin-bottom: 32px;
-  }
-
+  .dashContent { padding: 104px 24px 80px; }
+  .dashInner { max-width: 1000px; margin: 0 auto; }
+  .dashHeader { margin-bottom: 32px; }
   .dashGreeting {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--dark-plum);
-    margin-bottom: 6px;
-    letter-spacing: -0.02em;
+    font-size: 36px; font-weight: 700; color: var(--dark-plum);
+    margin-bottom: 6px; letter-spacing: -0.02em;
   }
+  .dashGreeting span { color: var(--main-rose); }
+  .dashSub { font-size: 13px; color: var(--dusty-rose); font-weight: 400; }
 
-  .dashGreeting span {
-    color: var(--main-rose);
-  }
-
-  .dashSub {
-    font-size: 13px;
-    color: var(--dusty-rose);
-    font-weight: 400;
-  }
-
-  /* SITES GRID */
   .sitesGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
+    gap: 20px; margin-bottom: 32px;
   }
-
   .siteCard {
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(194, 24, 91, 0.08);
-    border-radius: 18px;
-    padding: 20px;
-    backdrop-filter: blur(8px);
-    transition: 0.25s ease;
+    border-radius: 18px; padding: 20px;
+    backdrop-filter: blur(8px); transition: 0.25s ease;
     animation: fadeUp 0.4s ease both;
   }
-
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-
   .siteCard:hover {
     border-color: rgba(194, 24, 91, 0.18);
     box-shadow: 0 12px 32px rgba(194, 24, 91, 0.08);
     transform: translateY(-2px);
   }
-
-  .siteCardTop {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-  }
-
+  .siteCardTop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .siteTemplateBadge {
-    padding: 4px 10px;
-    background: var(--rose-blush);
-    border-radius: 999px;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--main-rose);
-    letter-spacing: 0.04em;
+    padding: 4px 10px; background: var(--rose-blush);
+    border-radius: 999px; font-size: 10px; font-weight: 600;
+    color: var(--main-rose); letter-spacing: 0.04em;
   }
-
-  .siteStatus {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-  }
-
+  .siteStatus { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; }
   .siteStatus.live  { color: #2e7d32; }
   .siteStatus.draft { color: var(--dusty-rose); }
-
-  .siteCardBody {
-    margin-bottom: 14px;
-  }
-
+  .siteCardBody { margin-bottom: 14px; }
   .siteName {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--dark-plum);
-    margin-bottom: 6px;
-    line-height: 1.2;
+    font-size: 20px; font-weight: 700; color: var(--dark-plum);
+    margin-bottom: 6px; line-height: 1.2;
   }
-
-  .siteLink {
-    font-size: 11px;
-    color: var(--dusty-rose);
-    font-weight: 400;
-    word-break: break-all;
-  }
-
+  .siteLink { font-size: 11px; color: var(--dusty-rose); font-weight: 400; word-break: break-all; }
   .siteCardStats {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(194, 24, 91, 0.06);
+    display: flex; gap: 16px; margin-bottom: 16px;
+    padding-top: 12px; border-top: 1px solid rgba(194, 24, 91, 0.06);
   }
-
-  .siteStat {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: var(--dusty-rose);
-    font-weight: 400;
-  }
-
+  .siteStat { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--dusty-rose); }
   .statIcon { font-size: 14px !important; }
-
-  .siteCardActions {
-    display: flex;
-    gap: 8px;
-  }
-
+  .siteCardActions { display: flex; gap: 8px; }
   .siteActionBtn {
-    flex: 1;
-    min-height: 44px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    transition: 0.2s ease;
-    text-decoration: none;
+    flex: 1; min-height: 44px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 4px; transition: 0.2s ease; text-decoration: none;
   }
-
-  .siteActionBtn .material-symbols-outlined {
-    font-size: 16px;
-  }
-
-  .siteActionBtn.copy {
-    background: transparent;
-    border: 1px solid rgba(194, 24, 91, 0.2);
-    color: var(--main-rose);
-  }
-  .siteActionBtn.copy:hover {
-    background: var(--rose-blush);
-    border-color: var(--main-rose);
-  }
-
-  .siteActionBtn.edit {
-    background: var(--main-rose);
-    border: 1px solid var(--main-rose);
-    color: #fff;
-  }
-  .siteActionBtn.edit:hover {
-    background: var(--rose-dark);
-    border-color: var(--rose-dark);
-  }
-
+  .siteActionBtn .material-symbols-outlined { font-size: 16px; }
+  .siteActionBtn.copy { background: transparent; border: 1px solid rgba(194, 24, 91, 0.2); color: var(--main-rose); }
+  .siteActionBtn.copy:hover { background: var(--rose-blush); border-color: var(--main-rose); }
+  .siteActionBtn.edit { background: var(--main-rose); border: 1px solid var(--main-rose); color: #fff; }
+  .siteActionBtn.edit:hover { background: var(--rose-dark); border-color: var(--rose-dark); }
   .siteActionBtn.delete {
-    flex: 0 0 44px;
-    background: transparent;
+    flex: 0 0 44px; background: transparent;
     border: 1px solid rgba(194, 24, 91, 0.12);
-    color: rgba(138, 100, 112, 0.5);
-    padding: 0;
+    color: rgba(138, 100, 112, 0.5); padding: 0;
   }
-  .siteActionBtn.delete:hover {
-    border-color: #d32f2f;
-    color: #d32f2f;
-    background: rgba(211, 47, 47, 0.06);
-  }
+  .siteActionBtn.delete:hover { border-color: #d32f2f; color: #d32f2f; background: rgba(211, 47, 47, 0.06); }
 
-  /* EMPTY STATE */
   .emptyState {
-    text-align: center;
-    padding: 60px 20px;
+    text-align: center; padding: 60px 20px;
     background: rgba(255, 255, 255, 0.6);
     border: 1px dashed rgba(194, 24, 91, 0.15);
-    border-radius: 20px;
-    margin-bottom: 32px;
+    border-radius: 20px; margin-bottom: 32px;
   }
-
   .emptyEmoji  { font-size: 40px; margin-bottom: 14px; }
-
-  .emptyTitle {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--dark-plum);
-    margin-bottom: 8px;
-  }
-
-  .emptyDesc {
-    font-size: 13px;
-    color: var(--dusty-rose);
-    font-weight: 300;
-    max-width: 340px;
-    margin: 0 auto 24px;
-    line-height: 1.6;
-  }
-
+  .emptyTitle { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; color: var(--dark-plum); margin-bottom: 8px; }
+  .emptyDesc { font-size: 13px; color: var(--dusty-rose); font-weight: 300; max-width: 340px; margin: 0 auto 24px; line-height: 1.6; }
   .emptyStateBtn {
-    display: inline-block;
-    padding: 14px 28px;
-    background: var(--main-rose);
-    color: #fff;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    font-family: 'DM Sans', sans-serif;
-    box-shadow: 0 8px 24px rgba(194, 24, 91, 0.2);
-    transition: 0.2s ease;
+    display: inline-block; padding: 14px 28px;
+    background: var(--main-rose); color: #fff;
+    border-radius: 999px; font-size: 13px; font-weight: 600;
+    text-decoration: none; font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 8px 24px rgba(194, 24, 91, 0.2); transition: 0.2s ease;
   }
-  .emptyStateBtn:hover {
-    background: var(--rose-dark);
-    transform: translateY(-2px);
-  }
+  .emptyStateBtn:hover { background: var(--rose-dark); transform: translateY(-2px); }
 
-  /* CREATE BUTTON */
-  .createBar {
-    display: flex;
-    justify-content: center;
-    padding: 24px 0;
-    border-top: 1px solid rgba(194, 24, 91, 0.08);
-  }
-
+  .createBar { display: flex; justify-content: center; padding: 24px 0; border-top: 1px solid rgba(194, 24, 91, 0.08); }
   .createBtn {
-    padding: 14px 32px;
-    background: var(--main-rose);
-    color: #fff;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    font-family: 'DM Sans', sans-serif;
-    transition: 0.2s ease;
-    box-shadow: 0 8px 24px rgba(194, 24, 91, 0.2);
+    padding: 14px 32px; background: var(--main-rose); color: #fff;
+    border-radius: 999px; font-size: 13px; font-weight: 600;
+    text-decoration: none; font-family: 'DM Sans', sans-serif;
+    transition: 0.2s ease; box-shadow: 0 8px 24px rgba(194, 24, 91, 0.2);
   }
+  .createBtn:hover { background: var(--rose-dark); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(194, 24, 91, 0.3); }
 
-  .createBtn:hover {
-    background: var(--rose-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(194, 24, 91, 0.3);
-  }
-
-  /* DELETE MODAL */
   .modalOverlay {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background: rgba(44, 26, 32, 0.5);
     backdrop-filter: blur(6px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    padding: 16px;
-    animation: fadeIn 0.2s ease;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; padding: 16px; animation: fadeIn 0.2s ease;
   }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   .modalCard {
-    background: #fff;
-    border-radius: 20px;
-    padding: 32px 28px;
-    max-width: 380px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
-    animation: scaleIn 0.2s ease;
+    background: #fff; border-radius: 20px; padding: 32px 28px;
+    max-width: 380px; width: 100%; text-align: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15); animation: scaleIn 0.2s ease;
   }
-
-  @keyframes scaleIn {
-    from { transform: scale(0.95); opacity: 0; }
-    to   { transform: scale(1);    opacity: 1; }
-  }
-
+  @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .modalEmoji  { font-size: 32px; margin-bottom: 14px; }
-
-  .modalTitle {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--dark-plum);
-    margin-bottom: 8px;
-  }
-
-  .modalDesc {
-    font-size: 12px;
-    color: var(--dusty-rose);
-    line-height: 1.6;
-    margin-bottom: 24px;
-  }
-
-  .modalActions {
-    display: flex;
-    gap: 10px;
-  }
-
-  .modalBtn {
-    flex: 1;
-    min-height: 44px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
-
-  .modalBtn.cancel {
-    background: transparent;
-    border: 1px solid rgba(194, 24, 91, 0.2);
-    color: var(--dusty-rose);
-  }
-  .modalBtn.cancel:hover {
-    border-color: var(--main-rose);
-    color: var(--main-rose);
-  }
-
-  .modalBtn.confirm {
-    background: #d32f2f;
-    border: none;
-    color: #fff;
-  }
+  .modalTitle { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; color: var(--dark-plum); margin-bottom: 8px; }
+  .modalDesc { font-size: 12px; color: var(--dusty-rose); line-height: 1.6; margin-bottom: 24px; }
+  .modalActions { display: flex; gap: 10px; }
+  .modalBtn { flex: 1; min-height: 44px; border-radius: 999px; font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: 0.2s ease; }
+  .modalBtn.cancel { background: transparent; border: 1px solid rgba(194, 24, 91, 0.2); color: var(--dusty-rose); }
+  .modalBtn.cancel:hover { border-color: var(--main-rose); color: var(--main-rose); }
+  .modalBtn.confirm { background: #d32f2f; border: none; color: #fff; }
   .modalBtn.confirm:hover { background: #b71c1c; }
 
   @media (max-width: 640px) {
-    .dashGreeting      { font-size: 28px; }
-    .sitesGrid         { grid-template-columns: 1fr; }
-    .siteCardActions   { flex-wrap: wrap; }
-    .dashUsername      { display: none; }
+    .dashGreeting    { font-size: 28px; }
+    .sitesGrid       { grid-template-columns: 1fr; }
+    .siteCardActions { flex-wrap: wrap; }
+    .dashUsername    { display: none; }
   }
 `

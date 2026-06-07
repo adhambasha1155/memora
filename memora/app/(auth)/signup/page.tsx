@@ -1,10 +1,12 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase'
+import Loading from '@/app/loading'
 
 export default function AuthPage() {
+  const [authChecking, setAuthChecking] = useState(true)
   const router = useRouter()
   const supabase = createClient()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -22,6 +24,16 @@ export default function AuthPage() {
   function isValidEmail(email: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        router.push('/dashboard') // already logged in → go to dashboard
+      } else {
+        setAuthChecking(false) // not logged in → show the form
+      }
+    })
+  }, [])
 
   async function checkUsername(value: string) {
     const cleaned = value.toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -130,13 +142,21 @@ export default function AuthPage() {
   function handleForgotPassword() {
     router.push('/forgot-password')
   }
+  if (authChecking) return <Loading />
 
   return (
     <main className="authPage">
       <section className="authShell">
         <div className="backRow">
-          <button className="backBtn" type="button" onClick={() => router.push('/')} aria-label="Back to home">
-            <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          <button
+            className="backBtn"
+            type="button"
+            onClick={() => router.push('/')}
+            aria-label="Back to home"
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">
+              arrow_back
+            </span>
           </button>
         </div>
         <div className="brand">
@@ -241,10 +261,15 @@ export default function AuthPage() {
                     <button
                       className="togglePass"
                       type="button"
-                      aria-label={showSigninPassword ? 'Hide password' : 'Show password'}
+                      aria-label={
+                        showSigninPassword ? 'Hide password' : 'Show password'
+                      }
                       onClick={() => setShowSigninPassword(!showSigninPassword)}
                     >
-                      <span className="material-symbols-outlined" aria-hidden="true">
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
                         {showSigninPassword ? 'visibility_off' : 'visibility'}
                       </span>
                     </button>
@@ -340,10 +365,15 @@ export default function AuthPage() {
                     <button
                       className="togglePass"
                       type="button"
-                      aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
+                      aria-label={
+                        showSignupPassword ? 'Hide password' : 'Show password'
+                      }
                       onClick={() => setShowSignupPassword(!showSignupPassword)}
                     >
-                      <span className="material-symbols-outlined" aria-hidden="true">
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
                         {showSignupPassword ? 'visibility_off' : 'visibility'}
                       </span>
                     </button>

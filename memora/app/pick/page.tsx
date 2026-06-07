@@ -833,6 +833,10 @@ const TEMPLATES = [
 
 export default function PickPage() {
   const [hoveredId, setHoveredId] = useState<number | null>(null)
+  const [isMobile] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    return window.innerWidth < 900
+  })
   const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
 
@@ -873,6 +877,8 @@ export default function PickPage() {
             className={`templateRow ${hoveredId === t.id ? 'hovered' : ''} ${index % 2 === 1 ? 'reversed' : ''}`}
             onMouseEnter={() => setHoveredId(t.id)}
             onMouseLeave={() => setHoveredId(null)}
+            onTouchStart={() => setHoveredId(t.id)}
+            onTouchEnd={() => setTimeout(() => setHoveredId(null), 2000)}
           >
             {/* Preview */}
             <div className="previewWrap">
@@ -881,8 +887,8 @@ export default function PickPage() {
                 style={{ background: t.bg }}
                 onClick={() => router.push(`/create/${t.id}`)}
               >
-                {/* Playful template → animated phone preview on hover */}
-                {t.id === 3 && hoveredId === 3 ? (
+                {/* Playful template → animated preview on hover (desktop) or always on mobile */}
+                {t.id === 3 && (hoveredId === 3 || isMobile) ? (
                   <div
                     style={{
                       position: 'absolute',
@@ -953,7 +959,7 @@ export default function PickPage() {
                 )}
 
                 {/* Hover overlay — only for non-playful or playful when not showing phone */}
-                {!(t.id === 3 && hoveredId === 3) && (
+                {!(t.id === 3 && (hoveredId === 3 || isMobile)) && (
                   <div className="previewOverlay">
                     <button
                       className="useBtn"
@@ -966,7 +972,7 @@ export default function PickPage() {
                 )}
 
                 {/* Choose button overlay for playful when phone is showing */}
-                {t.id === 3 && hoveredId === 3 && (
+                {t.id === 3 && (hoveredId === 3 || isMobile) && (
                   <div
                     style={{
                       position: 'absolute',
@@ -1087,7 +1093,7 @@ export default function PickPage() {
           align-items: center;
         }
         .logo {
-          height: 63px;
+          height: 36px;
           width: auto;
           object-fit: contain;
         }

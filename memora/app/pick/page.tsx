@@ -853,9 +853,6 @@ export default function PickPage() {
           <Link href="/" className="dashBrand">
             <img src="/memora-logo.png" alt="Memora" className="logo" />
           </Link>
-          <Link href="/dashboard" className="backBtn">
-            ← Back to account
-          </Link>
         </div>
       </nav>
 

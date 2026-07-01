@@ -69,11 +69,6 @@ export default function DashboardPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
   async function handleDelete(siteId: string) {
     await supabase.from('media').delete().eq('site_id', siteId)
     await supabase.from('sites').delete().eq('id', siteId)
@@ -82,7 +77,7 @@ export default function DashboardPage() {
   }
 
   function copyLink(slug: string) {
-    const link = `${profile?.username}.memora.com/${slug}`
+    const link = `${window.location.origin}/s/${slug}`
     navigator.clipboard.writeText(link)
     setCopied(slug)
     setTimeout(() => setCopied(null), 2000)
@@ -105,17 +100,6 @@ export default function DashboardPage() {
           <Link href="/" className="dashBrand">
             <img src="/memora-logo.png" alt="Memora" className="logo" />
           </Link>
-          <div className="dashNavRight">
-            <div className="dashUser">
-              <div className="dashAvatar">
-                {profile?.username?.charAt(0).toUpperCase()}
-              </div>
-              <span className="dashUsername">{profile?.username}</span>
-            </div>
-            <button className="logoutBtn" onClick={handleLogout}>
-              Sign out
-            </button>
-          </div>
         </div>
       </nav>
 
@@ -156,7 +140,7 @@ export default function DashboardPage() {
                         : site.slug}
                     </h3>
                     <div className="siteLink">
-                      {profile?.username}.memora.com/{site.slug}
+                      {window?.location?.origin}/s/{site.slug}
                     </div>
                   </div>
 
@@ -326,27 +310,9 @@ const dashStyles = `
     height: 64px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
   }
   .dashBrand { text-decoration: none; display: flex; align-items: center; }
   .logo { height: 36px; width: auto; object-fit: contain; }
-  .dashNavRight { display: flex; align-items: center; gap: 14px; }
-  .dashUser { display: flex; align-items: center; gap: 8px; }
-  .dashAvatar {
-    width: 30px; height: 30px; border-radius: 50%;
-    background: var(--main-rose); color: #fff;
-    font-size: 12px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .dashUsername { font-size: 12px; font-weight: 600; color: var(--dark-plum); }
-  .logoutBtn {
-    padding: 0 16px; min-height: 44px;
-    border: 1px solid rgba(194, 24, 91, 0.2);
-    border-radius: 999px; background: transparent;
-    color: var(--dusty-rose); font-size: 11px; font-weight: 600;
-    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: 0.2s ease;
-  }
-  .logoutBtn:hover { border-color: var(--main-rose); color: var(--main-rose); background: var(--rose-blush); }
 
   .dashContent { padding: 104px 24px 80px; }
   .dashInner { max-width: 1000px; margin: 0 auto; }
@@ -476,6 +442,5 @@ const dashStyles = `
     .dashGreeting    { font-size: 28px; }
     .sitesGrid       { grid-template-columns: 1fr; }
     .siteCardActions { flex-wrap: wrap; }
-    .dashUsername    { display: none; }
   }
 `

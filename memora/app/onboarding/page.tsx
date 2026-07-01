@@ -213,7 +213,7 @@ export default function OnboardingPage() {
         }
 
         .logo {
-          height: 63px;
+          height: 3px;
           width: auto;
           object-fit: contain;
           display: block;

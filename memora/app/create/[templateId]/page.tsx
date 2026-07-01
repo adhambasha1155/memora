@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase'
 import Link from 'next/link'
+import imageCompression from 'browser-image-compression'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface UploadedFile {
@@ -65,7 +66,6 @@ const TABS = [
   { id: 5, label: 'Design', icon: '🎨' },
 ]
 
-// ── Color palettes ────────────────────────────────────────────────────────────
 const BG_COLORS = [
   { label: 'Cream', value: '#fefccf' },
   { label: 'Blush', value: '#fdf5f7' },
@@ -111,26 +111,36 @@ const ACCENT_COLORS = [
   { label: 'Indigo', value: '#4338ca' },
 ]
 
-// ── Color palettes ────────────────────────────────────────────────────────────
-// ─── Upload to R2 ─────────────────────────────────────────────────────────────
+// ─── Upload to R2 (with compression) ─────────────────────────────────────────
 async function uploadFileToR2(
   file: File,
   userId: string,
   siteSlug: string
 ): Promise<string> {
-  const ext = file.name.split('.').pop()
+  let fileToUpload: File = file
+  if (file.type.startsWith('image/')) {
+    fileToUpload = await imageCompression(file, {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+      fileType: 'image/webp',
+    })
+  }
+
+  const ext =
+    fileToUpload.type === 'image/webp' ? 'webp' : file.name.split('.').pop()
   const key = `users/${userId}/sites/${siteSlug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
   const res = await fetch('/api/r2/presign', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key, contentType: file.type }),
+    body: JSON.stringify({ key, contentType: fileToUpload.type }),
   })
   if (!res.ok) throw new Error('Failed to get upload URL')
   const { presignedUrl, publicUrl } = await res.json()
   const uploadRes = await fetch(presignedUrl, {
     method: 'PUT',
-    body: file,
-    headers: { 'Content-Type': file.type },
+    body: fileToUpload,
+    headers: { 'Content-Type': fileToUpload.type },
   })
   if (!uploadRes.ok) throw new Error('Upload failed')
   return publicUrl
@@ -296,7 +306,6 @@ export default function CreatePage() {
 
   return (
     <div className="shell">
-      {/* ── TOP NAV ── */}
       <nav className="topNav">
         <Link href="/pick" className="navBack">
           ← Back
@@ -313,7 +322,6 @@ export default function CreatePage() {
         </button>
       </nav>
 
-      {/* ── TABS ── */}
       <div className="tabBar">
         {TABS.map((t) => (
           <button
@@ -327,18 +335,14 @@ export default function CreatePage() {
         ))}
       </div>
 
-      {/* ── MAIN LAYOUT ── */}
       <div className="layout">
-        {/* ── FORM AREA ── */}
         <div className="formArea">
-          {/* INFO TAB */}
           {activeTab === 0 && (
             <div className="section">
               <h2 className="sectionTitle">Basic Info</h2>
               <p className="sectionDesc">
                 The essentials for your memory site.
               </p>
-
               <div className="field">
                 <label className="fieldLabel">Recipient&apos;s name</label>
                 <input
@@ -350,7 +354,6 @@ export default function CreatePage() {
                   }
                 />
               </div>
-
               <div className="field">
                 <label className="fieldLabel">Your name</label>
                 <input
@@ -362,7 +365,6 @@ export default function CreatePage() {
                   }
                 />
               </div>
-
               <div className="twoCol">
                 <div className="field">
                   <label className="fieldLabel">Occasion</label>
@@ -390,7 +392,6 @@ export default function CreatePage() {
                   />
                 </div>
               </div>
-
               <div className="field">
                 <label className="fieldLabel">Site URL slug</label>
                 <div className="slugWrap">
@@ -407,10 +408,8 @@ export default function CreatePage() {
                   <span className="fieldSuccess">✓ memora.com/{form.slug}</span>
                 )}
               </div>
-
               <div className="divider" />
               <h3 className="subTitle">Invitation Page Text</h3>
-
               <div className="field">
                 <label className="fieldLabel">Main heading</label>
                 <input
@@ -422,7 +421,6 @@ export default function CreatePage() {
                   }
                 />
               </div>
-
               <div className="field">
                 <label className="fieldLabel">Subtitle</label>
                 <textarea
@@ -435,7 +433,6 @@ export default function CreatePage() {
                   }
                 />
               </div>
-
               <div className="twoCol">
                 <div className="field">
                   <label className="fieldLabel">Countdown label</label>
@@ -469,20 +466,17 @@ export default function CreatePage() {
             </div>
           )}
 
-          {/* JOURNEY TAB */}
           {activeTab === 1 && (
             <div className="section">
               <h2 className="sectionTitle">Journey</h2>
               <p className="sectionDesc">
                 Add milestones — each with a photo, date and title.
               </p>
-
               {!form.slug && (
                 <div className="uploadWarning">
                   Set a site slug in Basic Info first.
                 </div>
               )}
-
               <div className="milestoneList">
                 {journeyPhotos.map((p, i) => (
                   <div key={p.id} className="milestoneItem">
@@ -551,7 +545,6 @@ export default function CreatePage() {
                   </div>
                 ))}
               </div>
-
               <button
                 className={`addBtn ${!form.slug ? 'disabled' : ''}`}
                 onClick={() => form.slug && journeyInputRef.current?.click()}
@@ -571,21 +564,17 @@ export default function CreatePage() {
             </div>
           )}
 
-          {/* GALLERY TAB */}
           {activeTab === 2 && (
             <div className="section">
               <h2 className="sectionTitle">Gallery & Gift</h2>
               <p className="sectionDesc">
                 Gallery photos and the gift box message.
               </p>
-
               {!form.slug && (
                 <div className="uploadWarning">
                   Set a site slug in Basic Info first.
                 </div>
               )}
-
-              {/* Gift box */}
               <div className="giftBox">
                 <div className="giftBoxHeader">
                   <span>🎁</span>
@@ -615,10 +604,8 @@ export default function CreatePage() {
                   />
                 </div>
               </div>
-
               <div className="divider" />
               <h3 className="subTitle">Gallery Photos</h3>
-
               <div className="milestoneList">
                 {galleryPhotos.map((p, i) => (
                   <div key={p.id} className="milestoneItem">
@@ -675,7 +662,6 @@ export default function CreatePage() {
                   </div>
                 ))}
               </div>
-
               <button
                 className={`addBtn ${!form.slug ? 'disabled' : ''}`}
                 onClick={() => form.slug && galleryInputRef.current?.click()}
@@ -695,7 +681,6 @@ export default function CreatePage() {
             </div>
           )}
 
-          {/* MESSAGE TAB */}
           {activeTab === 3 && (
             <div className="section">
               <h2 className="sectionTitle">Message</h2>
@@ -718,7 +703,6 @@ export default function CreatePage() {
             </div>
           )}
 
-          {/* MUSIC TAB */}
           {activeTab === 4 && (
             <div className="section">
               <h2 className="sectionTitle">Music</h2>
@@ -746,14 +730,12 @@ export default function CreatePage() {
             </div>
           )}
 
-          {/* DESIGN TAB */}
           {activeTab === 5 && (
             <div className="section">
               <h2 className="sectionTitle">Design</h2>
               <p className="sectionDesc">
                 Customise the colours of your Memora site.
               </p>
-
               <div
                 className="designPreview"
                 style={{
@@ -783,7 +765,6 @@ export default function CreatePage() {
                   {form.inviteButtonText || 'Enter the Magic'} ✦
                 </div>
               </div>
-
               <div className="colorSection">
                 <div className="colorSectionLabel">Background colour</div>
                 <div className="colorGrid">
@@ -824,7 +805,6 @@ export default function CreatePage() {
                   </label>
                 </div>
               </div>
-
               <div className="colorSection">
                 <div className="colorSectionLabel">Text colour</div>
                 <div className="colorGrid">
@@ -867,7 +847,6 @@ export default function CreatePage() {
                   </label>
                 </div>
               </div>
-
               <div className="colorSection">
                 <div className="colorSectionLabel">
                   Accent colour{' '}
@@ -913,7 +892,6 @@ export default function CreatePage() {
                   </label>
                 </div>
               </div>
-
               <button
                 className="resetColorsBtn"
                 onClick={() =>
@@ -930,7 +908,6 @@ export default function CreatePage() {
             </div>
           )}
 
-          {/* Bottom navigation */}
           <div className="bottomNav">
             {activeTab > 0 && (
               <button
@@ -959,7 +936,6 @@ export default function CreatePage() {
           </div>
         </div>
 
-        {/* ── DESKTOP PREVIEW PANEL ── */}
         <aside className="desktopPreview">
           <div className="previewHeader">
             <span className="previewTitle">Preview</span>
@@ -967,7 +943,6 @@ export default function CreatePage() {
               <span className="previewLocked">🔒 Publish to unlock</span>
             )}
           </div>
-
           {!showPreview ? (
             <div className="previewEmpty">
               <div className="previewEmptyIcon">✦</div>
@@ -986,7 +961,6 @@ export default function CreatePage() {
         </aside>
       </div>
 
-      {/* ── MOBILE SAVE BUTTON ── */}
       <div className="mobileSaveBar">
         <button
           className={`mobileSaveBtn ${saving ? 'loading' : ''} ${saved ? 'saved' : ''}`}
@@ -997,7 +971,6 @@ export default function CreatePage() {
         </button>
       </div>
 
-      {/* ── MOBILE PREVIEW BOTTOM SHEET ── */}
       {showPreview && (
         <div className="bottomSheet">
           <div
@@ -1031,7 +1004,6 @@ export default function CreatePage() {
 
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
-
         .shell {
           --warm-white: #fdf5f7;
           --rose-blush: #f9e4ec;
@@ -1047,8 +1019,6 @@ export default function CreatePage() {
           display: flex;
           flex-direction: column;
         }
-
-        /* ── TOP NAV ── */
         .topNav {
           position: fixed;
           top: 0;
@@ -1097,8 +1067,6 @@ export default function CreatePage() {
         .saveBtn.saved {
           background: #2e7d32;
         }
-
-        /* ── TAB BAR ── */
         .tabBar {
           position: fixed;
           top: 52px;
@@ -1144,15 +1112,11 @@ export default function CreatePage() {
         .tab.active .tabLabel {
           color: var(--main-rose);
         }
-
-        /* ── LAYOUT ── */
         .layout {
-          margin-top: 104px; /* nav + tabs */
+          margin-top: 104px;
           flex: 1;
           display: flex;
         }
-
-        /* ── FORM AREA ── */
         .formArea {
           flex: 1;
           overflow-y: auto;
@@ -1165,8 +1129,6 @@ export default function CreatePage() {
             border-right: 1px solid var(--border);
           }
         }
-
-        /* ── SECTIONS ── */
         .section {
           animation: fadeUp 0.25s ease forwards;
         }
@@ -1210,8 +1172,6 @@ export default function CreatePage() {
           grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
-
-        /* ── FIELDS ── */
         .field {
           margin-bottom: 14px;
         }
@@ -1275,7 +1235,6 @@ export default function CreatePage() {
           float: right;
           margin-top: 3px;
         }
-
         .slugWrap {
           display: flex;
         }
@@ -1293,8 +1252,6 @@ export default function CreatePage() {
         .slugInput {
           border-radius: 0 10px 10px 0 !important;
         }
-
-        /* ── UPLOAD WARNING ── */
         .uploadWarning {
           background: rgba(255, 193, 7, 0.1);
           border: 1px solid rgba(255, 193, 7, 0.3);
@@ -1304,8 +1261,6 @@ export default function CreatePage() {
           color: #7a5800;
           margin-bottom: 16px;
         }
-
-        /* ── MILESTONE LIST ── */
         .milestoneList {
           display: flex;
           flex-direction: column;
@@ -1433,7 +1388,6 @@ export default function CreatePage() {
         .milestoneTextarea:focus {
           border-color: var(--main-rose);
         }
-
         .addBtn {
           width: 100%;
           padding: 11px;
@@ -1455,8 +1409,6 @@ export default function CreatePage() {
           opacity: 0.4;
           cursor: not-allowed;
         }
-
-        /* ── GIFT BOX ── */
         .giftBox {
           background: rgba(255, 223, 132, 0.12);
           border: 1px solid rgba(255, 223, 132, 0.4);
@@ -1477,8 +1429,6 @@ export default function CreatePage() {
           font-weight: 700;
           color: var(--dark-plum);
         }
-
-        /* ── MUSIC NOTE ── */
         .musicNote {
           display: flex;
           gap: 10px;
@@ -1489,8 +1439,6 @@ export default function CreatePage() {
           color: var(--dusty-rose);
           line-height: 1.5;
         }
-
-        /* ── BOTTOM NAV (prev/next) ── */
         .bottomNav {
           display: flex;
           gap: 10px;
@@ -1532,8 +1480,6 @@ export default function CreatePage() {
           opacity: 0.5;
           cursor: not-allowed;
         }
-
-        /* ── SPINNER ── */
         .spinner {
           width: 18px;
           height: 18px;
@@ -1547,8 +1493,6 @@ export default function CreatePage() {
             transform: rotate(360deg);
           }
         }
-
-        /* ── DESKTOP PREVIEW ── */
         .desktopPreview {
           display: none;
         }
@@ -1613,8 +1557,6 @@ export default function CreatePage() {
           max-width: 240px;
           line-height: 1.5;
         }
-
-        /* ── MOBILE SAVE BAR ── */
         .mobileSaveBar {
           position: fixed;
           bottom: 0;
@@ -1652,8 +1594,6 @@ export default function CreatePage() {
         .mobileSaveBtn.saved {
           background: #2e7d32;
         }
-
-        /* ── DESIGN TAB ── */
         .designPreview {
           border-radius: 16px;
           padding: 20px;
@@ -1747,8 +1687,6 @@ export default function CreatePage() {
           border-color: var(--main-rose);
           color: var(--main-rose);
         }
-
-        /* ── BOTTOM SHEET ── */
         .sheetOverlay {
           position: fixed;
           inset: 0;
@@ -1879,7 +1817,6 @@ function PreviewCards({
               userSelect: 'none',
             }}
           >
-            {/* Blurred photo bg */}
             {i === 1 && journeyPhotos[0] && (
               <img
                 src={journeyPhotos[0].preview}
@@ -1912,7 +1849,6 @@ function PreviewCards({
                 }}
               />
             )}
-            {/* Watermark */}
             <div
               style={{
                 position: 'absolute',
@@ -1943,7 +1879,6 @@ function PreviewCards({
                 </span>
               ))}
             </div>
-            {/* Content */}
             <div
               style={{
                 position: 'absolute',
@@ -1988,7 +1923,6 @@ function PreviewCards({
           </div>
         ))}
       </div>
-      {/* Publish CTA */}
       <div
         style={{
           background: '#7a1733',

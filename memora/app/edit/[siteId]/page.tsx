@@ -5,13 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase'
 import Link from 'next/link'
 import Loading from '@/app/loading'
-const TEMPLATE_NAMES_REVERSE: Record<string, number> = {
-  cinematic: 1,
-  romantic: 2,
-  playful: 3,
-  elegant: 4,
-  minimal: 5,
-}
+import imageCompression from 'browser-image-compression'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface UploadedFile {
@@ -69,25 +63,37 @@ const TABS = [
   { id: 4, label: 'Music', icon: '♪' },
 ]
 
-// ─── Upload to R2 ─────────────────────────────────────────────────────────────
+// ─── Upload to R2 (with compression) ─────────────────────────────────────────
 async function uploadFileToR2(
   file: File,
   userId: string,
   siteSlug: string
 ): Promise<string> {
-  const ext = file.name.split('.').pop()
+  // Compress images before upload
+  let fileToUpload: File = file
+  if (file.type.startsWith('image/')) {
+    fileToUpload = await imageCompression(file, {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+      fileType: 'image/webp',
+    })
+  }
+
+  const ext =
+    fileToUpload.type === 'image/webp' ? 'webp' : file.name.split('.').pop()
   const key = `users/${userId}/sites/${siteSlug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
   const res = await fetch('/api/r2/presign', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key, contentType: file.type }),
+    body: JSON.stringify({ key, contentType: fileToUpload.type }),
   })
   if (!res.ok) throw new Error('Failed to get upload URL')
   const { presignedUrl, publicUrl } = await res.json()
   const uploadRes = await fetch(presignedUrl, {
     method: 'PUT',
-    body: file,
-    headers: { 'Content-Type': file.type },
+    body: fileToUpload,
+    headers: { 'Content-Type': fileToUpload.type },
   })
   if (!uploadRes.ok) throw new Error('Upload failed')
   return publicUrl
@@ -141,18 +147,17 @@ export default function EditPage() {
       }
       setUserId(user.id)
 
-      // Load site data
       const { data: site } = await supabase
         .from('sites')
         .select('*')
         .eq('id', siteId)
-        .eq('user_id', user.id) // security: only owner can edit
+        .eq('user_id', user.id)
         .maybeSingle()
 
       if (!site) {
         router.push('/dashboard')
         return
-      } // not found or not owner
+      }
 
       setTemplateId(site.template_id)
       setForm({
@@ -171,7 +176,6 @@ export default function EditPage() {
         inviteButtonText: site.invite_button_text || '',
       })
 
-      // Load existing media
       const { data: media } = await supabase
         .from('media')
         .select('*')
@@ -290,7 +294,6 @@ export default function EditPage() {
         .eq('user_id', userId)
       if (siteErr) throw siteErr
 
-      // Save media
       const allMedia = [
         ...journeyPhotos
           .filter((p) => p.r2Url)
@@ -326,32 +329,23 @@ export default function EditPage() {
       setSaving(false)
     }
   }
-  if (loading) {
-    return <Loading />
-  }
+
+  if (loading) return <Loading />
 
   return (
     <div className="shell">
-      {/* ── TOP NAV ── */}
       <nav className="topNav">
         <Link href="/dashboard" className="navBack">
-          ← Dashboard
+          ←
         </Link>
         <div className="navCenter">
           <span className="navTemplate">
             {TEMPLATE_NAMES[templateId]} · Edit
           </span>
         </div>
-        <button
-          className={`saveBtn ${saving ? 'loading' : ''} ${saved ? 'saved' : ''}`}
-          onClick={handleSave}
-          disabled={saving || !form.slug || !!slugError}
-        >
-          {saving ? '...' : saved ? '✓' : 'Save'}
-        </button>
+        <div className="navSpacer" />
       </nav>
 
-      {/* ── TABS ── */}
       <div className="tabBar">
         {TABS.map((t) => (
           <button
@@ -365,11 +359,8 @@ export default function EditPage() {
         ))}
       </div>
 
-      {/* ── MAIN LAYOUT ── */}
       <div className="layout">
-        {/* ── FORM AREA ── */}
         <div className="formArea">
-          {/* INFO TAB */}
           {activeTab === 0 && (
             <div className="section">
               <h2 className="sectionTitle">Basic Info</h2>
@@ -388,7 +379,6 @@ export default function EditPage() {
                   }
                 />
               </div>
-
               <div className="field">
                 <label className="fieldLabel">Your name</label>
                 <input
@@ -400,7 +390,6 @@ export default function EditPage() {
                   }
                 />
               </div>
-
               <div className="twoCol">
                 <div className="field">
                   <label className="fieldLabel">Occasion</label>
@@ -428,7 +417,6 @@ export default function EditPage() {
                   />
                 </div>
               </div>
-
               <div className="field">
                 <label className="fieldLabel">Site URL slug</label>
                 <div className="slugWrap">
@@ -460,7 +448,6 @@ export default function EditPage() {
                   }
                 />
               </div>
-
               <div className="field">
                 <label className="fieldLabel">Subtitle</label>
                 <textarea
@@ -473,7 +460,6 @@ export default function EditPage() {
                   }
                 />
               </div>
-
               <div className="twoCol">
                 <div className="field">
                   <label className="fieldLabel">Countdown label</label>
@@ -507,20 +493,17 @@ export default function EditPage() {
             </div>
           )}
 
-          {/* JOURNEY TAB */}
           {activeTab === 1 && (
             <div className="section">
               <h2 className="sectionTitle">Journey</h2>
               <p className="sectionDesc">
                 Add milestones — each with a photo, date and title.
               </p>
-
               {!form.slug && (
                 <div className="uploadWarning">
                   Set a site slug in Basic Info first.
                 </div>
               )}
-
               <div className="milestoneList">
                 {journeyPhotos.map((p, i) => (
                   <div key={p.id} className="milestoneItem">
@@ -589,7 +572,6 @@ export default function EditPage() {
                   </div>
                 ))}
               </div>
-
               <button
                 className={`addBtn ${!form.slug ? 'disabled' : ''}`}
                 onClick={() => form.slug && journeyInputRef.current?.click()}
@@ -609,21 +591,17 @@ export default function EditPage() {
             </div>
           )}
 
-          {/* GALLERY TAB */}
           {activeTab === 2 && (
             <div className="section">
               <h2 className="sectionTitle">Gallery & Gift</h2>
               <p className="sectionDesc">
                 Gallery photos and the gift box message.
               </p>
-
               {!form.slug && (
                 <div className="uploadWarning">
                   Set a site slug in Basic Info first.
                 </div>
               )}
-
-              {/* Gift box */}
               <div className="giftBox">
                 <div className="giftBoxHeader">
                   <span>🎁</span>
@@ -653,10 +631,8 @@ export default function EditPage() {
                   />
                 </div>
               </div>
-
               <div className="divider" />
               <h3 className="subTitle">Gallery Photos</h3>
-
               <div className="milestoneList">
                 {galleryPhotos.map((p, i) => (
                   <div key={p.id} className="milestoneItem">
@@ -713,7 +689,6 @@ export default function EditPage() {
                   </div>
                 ))}
               </div>
-
               <button
                 className={`addBtn ${!form.slug ? 'disabled' : ''}`}
                 onClick={() => form.slug && galleryInputRef.current?.click()}
@@ -733,7 +708,6 @@ export default function EditPage() {
             </div>
           )}
 
-          {/* MESSAGE TAB */}
           {activeTab === 3 && (
             <div className="section">
               <h2 className="sectionTitle">Message</h2>
@@ -756,7 +730,6 @@ export default function EditPage() {
             </div>
           )}
 
-          {/* MUSIC TAB */}
           {activeTab === 4 && (
             <div className="section">
               <h2 className="sectionTitle">Music</h2>
@@ -784,7 +757,6 @@ export default function EditPage() {
             </div>
           )}
 
-          {/* Bottom navigation */}
           <div className="bottomNav">
             {activeTab > 0 && (
               <button
@@ -803,17 +775,16 @@ export default function EditPage() {
               </button>
             ) : (
               <button
-                className={`bottomNavBtn save ${saving ? 'loading' : ''}`}
+                className={`bottomNavBtn save ${saving ? 'loading' : ''} ${saved ? 'saved' : ''}`}
                 onClick={handleSave}
                 disabled={saving || !form.slug || !!slugError}
               >
-                {saving ? 'Saving...' : 'Save & Preview →'}
+                {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save & Preview →'}
               </button>
             )}
           </div>
         </div>
 
-        {/* ── DESKTOP PREVIEW PANEL ── */}
         <aside className="desktopPreview">
           <div className="previewHeader">
             <span className="previewTitle">Preview</span>
@@ -821,13 +792,13 @@ export default function EditPage() {
               <span className="previewLocked">🔒 Publish to unlock</span>
             )}
           </div>
-
           {!showPreview ? (
             <div className="previewEmpty">
               <div className="previewEmptyIcon">✦</div>
               <p className="previewEmptyTitle">Preview appears after saving</p>
               <p className="previewEmptyDesc">
-                Fill in the details and hit Save to see a protected preview.
+                Fill in the details and hit Save & Preview to see a protected
+                preview.
               </p>
             </div>
           ) : (
@@ -835,12 +806,12 @@ export default function EditPage() {
               form={form}
               journeyPhotos={journeyPhotos}
               galleryPhotos={galleryPhotos}
+              router={router}
             />
           )}
         </aside>
       </div>
 
-      {/* ── MOBILE SAVE BUTTON ── */}
       <div className="mobileSaveBar">
         <button
           className={`mobileSaveBtn ${saving ? 'loading' : ''} ${saved ? 'saved' : ''}`}
@@ -851,7 +822,6 @@ export default function EditPage() {
         </button>
       </div>
 
-      {/* ── MOBILE PREVIEW BOTTOM SHEET ── */}
       {showPreview && (
         <div className="bottomSheet">
           <div
@@ -875,6 +845,7 @@ export default function EditPage() {
               form={form}
               journeyPhotos={journeyPhotos}
               galleryPhotos={galleryPhotos}
+              router={router}
             />
           </div>
         </div>
@@ -901,8 +872,6 @@ export default function EditPage() {
           display: flex;
           flex-direction: column;
         }
-
-        /* ── TOP NAV ── */
         .topNav {
           position: fixed;
           top: 0;
@@ -931,28 +900,9 @@ export default function EditPage() {
           font-weight: 700;
           color: var(--main-rose);
         }
-        .saveBtn {
-          padding: 7px 16px;
-          background: var(--main-rose);
-          color: #fff;
-          border: none;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 600;
-          font-family: 'DM Sans', sans-serif;
-          cursor: pointer;
-          transition: all 0.2s;
-          box-shadow: 0 4px 12px rgba(194, 24, 91, 0.2);
+        .navSpacer {
+          width: 60px;
         }
-        .saveBtn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .saveBtn.saved {
-          background: #2e7d32;
-        }
-
-        /* ── TAB BAR ── */
         .tabBar {
           position: fixed;
           top: 52px;
@@ -999,15 +949,11 @@ export default function EditPage() {
         .tab.active .tabLabel {
           color: var(--main-rose);
         }
-
-        /* ── LAYOUT ── */
         .layout {
-          margin-top: 104px; /* nav + tabs */
+          margin-top: 104px;
           flex: 1;
           display: flex;
         }
-
-        /* ── FORM AREA ── */
         .formArea {
           flex: 1;
           overflow-y: auto;
@@ -1020,8 +966,6 @@ export default function EditPage() {
             border-right: 1px solid var(--border);
           }
         }
-
-        /* ── SECTIONS ── */
         .section {
           animation: fadeUp 0.25s ease forwards;
         }
@@ -1065,8 +1009,6 @@ export default function EditPage() {
           grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
-
-        /* ── FIELDS ── */
         .field {
           margin-bottom: 14px;
         }
@@ -1130,7 +1072,6 @@ export default function EditPage() {
           float: right;
           margin-top: 3px;
         }
-
         .slugWrap {
           display: flex;
         }
@@ -1148,8 +1089,6 @@ export default function EditPage() {
         .slugInput {
           border-radius: 0 10px 10px 0 !important;
         }
-
-        /* ── UPLOAD WARNING ── */
         .uploadWarning {
           background: rgba(255, 193, 7, 0.1);
           border: 1px solid rgba(255, 193, 7, 0.3);
@@ -1159,8 +1098,6 @@ export default function EditPage() {
           color: #7a5800;
           margin-bottom: 16px;
         }
-
-        /* ── MILESTONE LIST ── */
         .milestoneList {
           display: flex;
           flex-direction: column;
@@ -1288,7 +1225,6 @@ export default function EditPage() {
         .milestoneTextarea:focus {
           border-color: var(--main-rose);
         }
-
         .addBtn {
           width: 100%;
           padding: 11px;
@@ -1310,8 +1246,6 @@ export default function EditPage() {
           opacity: 0.4;
           cursor: not-allowed;
         }
-
-        /* ── GIFT BOX ── */
         .giftBox {
           background: rgba(255, 223, 132, 0.12);
           border: 1px solid rgba(255, 223, 132, 0.4);
@@ -1332,8 +1266,6 @@ export default function EditPage() {
           font-weight: 700;
           color: var(--dark-plum);
         }
-
-        /* ── MUSIC NOTE ── */
         .musicNote {
           display: flex;
           gap: 10px;
@@ -1344,8 +1276,6 @@ export default function EditPage() {
           color: var(--dusty-rose);
           line-height: 1.5;
         }
-
-        /* ── BOTTOM NAV (prev/next) ── */
         .bottomNav {
           display: flex;
           gap: 10px;
@@ -1387,8 +1317,9 @@ export default function EditPage() {
           opacity: 0.5;
           cursor: not-allowed;
         }
-
-        /* ── SPINNER ── */
+        .bottomNavBtn.saved {
+          background: #2e7d32;
+        }
         .spinner {
           width: 18px;
           height: 18px;
@@ -1402,8 +1333,6 @@ export default function EditPage() {
             transform: rotate(360deg);
           }
         }
-
-        /* ── DESKTOP PREVIEW ── */
         .desktopPreview {
           display: none;
         }
@@ -1468,8 +1397,6 @@ export default function EditPage() {
           max-width: 240px;
           line-height: 1.5;
         }
-
-        /* ── MOBILE SAVE BAR ── */
         .mobileSaveBar {
           position: fixed;
           bottom: 0;
@@ -1507,8 +1434,6 @@ export default function EditPage() {
         .mobileSaveBtn.saved {
           background: #2e7d32;
         }
-
-        /* ── BOTTOM SHEET ── */
         .sheetOverlay {
           position: fixed;
           inset: 0;
@@ -1583,10 +1508,12 @@ function PreviewCards({
   form,
   journeyPhotos,
   galleryPhotos,
+  router,
 }: {
   form: FormData
   journeyPhotos: UploadedFile[]
   galleryPhotos: UploadedFile[]
+  router: ReturnType<typeof useRouter>
 }) {
   const cards = [
     {
@@ -1639,7 +1566,6 @@ function PreviewCards({
               userSelect: 'none',
             }}
           >
-            {/* Blurred photo bg */}
             {i === 1 && journeyPhotos[0] && (
               <img
                 src={journeyPhotos[0].preview}
@@ -1672,7 +1598,6 @@ function PreviewCards({
                 }}
               />
             )}
-            {/* Watermark */}
             <div
               style={{
                 position: 'absolute',
@@ -1703,7 +1628,6 @@ function PreviewCards({
                 </span>
               ))}
             </div>
-            {/* Content */}
             <div
               style={{
                 position: 'absolute',
@@ -1748,7 +1672,6 @@ function PreviewCards({
           </div>
         ))}
       </div>
-      {/* Publish CTA */}
       <div
         style={{
           background: '#7a1733',
@@ -1769,6 +1692,7 @@ function PreviewCards({
           Ready to share your Memora?
         </p>
         <button
+          onClick={() => router.push(`/s/${form.slug}`)}
           style={{
             padding: '10px 24px',
             background: '#fff',
@@ -1779,7 +1703,12 @@ function PreviewCards({
             fontWeight: 700,
             fontFamily: "'DM Sans', sans-serif",
             cursor: 'pointer',
+            transition: 'transform 0.2s',
           }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.transform = 'scale(1.04)')
+          }
+          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
         >
           Publish & Share →
         </button>

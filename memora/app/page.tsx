@@ -102,14 +102,11 @@ const proofs = [
 ]
 
 export default function LandingPage() {
-  const [user, setUser] = useState<{ email?: string } | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const [hoveredId, setHoveredId] = useState<number | null>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user))
     const handleScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
@@ -123,43 +120,6 @@ export default function LandingPage() {
             <span className="navBrand">
               <img src="/memora-logo.png" alt="Memora" className="logo" />
             </span>
-            <div className="navActions">
-              {user ? (
-                <Link href="/dashboard" className="accountIcon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="8" r="4" />
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                  </svg>
-                </Link>
-              ) : (
-                <Link href="/signup" className="accountIcon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="8" r="4" />
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                  </svg>
-                </Link>
-              )}
-            </div>
           </div>
         </nav>
 
@@ -259,7 +219,6 @@ export default function LandingPage() {
                           />
                         ))}
                       </div>
-
                       <div className="tplParticlesWrap">
                         {t.particles.map((p, i) => (
                           <span
@@ -275,7 +234,6 @@ export default function LandingPage() {
                           </span>
                         ))}
                       </div>
-
                       <div className="tplMock">
                         <div
                           className="tplMockDot"
@@ -292,12 +250,10 @@ export default function LandingPage() {
                           />
                         </div>
                       </div>
-
                       <div className="tplWatermark" style={{ color: t.accent }}>
                         {t.name}
                       </div>
                     </div>
-
                     <div className="templateInfo">
                       <div className="templateName">{t.name}</div>
                       <div className="templateMood">{t.mood}</div>
@@ -325,7 +281,6 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-
             <div className="testimonial">
               <div className="quoteMarks"></div>
               <p className="quoteText">
@@ -452,7 +407,6 @@ export default function LandingPage() {
           height: 64px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
         }
         .navBrand {
           display: flex;
@@ -462,27 +416,6 @@ export default function LandingPage() {
           height: 36px;
           width: auto;
           object-fit: contain;
-        }
-        .navActions {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .accountIcon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 38px;
-          height: 38px;
-          border-radius: 50%;
-          border: 1px solid rgba(194, 24, 91, 0.2);
-          color: var(--main-rose);
-          text-decoration: none;
-          transition: 0.2s ease;
-        }
-        .accountIcon:hover {
-          background: var(--rose-blush);
-          border-color: var(--main-rose);
         }
 
         .hero {
@@ -663,7 +596,6 @@ export default function LandingPage() {
           background: rgba(255, 255, 255, 0.9);
         }
 
-        /* ===== TEMPLATE CARD ===== */
         .templateCard {
           background: rgba(255, 255, 255, 0.6);
           backdrop-filter: blur(8px);
@@ -679,7 +611,6 @@ export default function LandingPage() {
           transform: translateY(-10px);
           box-shadow: 0 20px 40px rgba(194, 24, 91, 0.1);
         }
-
         .templatePreview {
           height: 180px;
           position: relative;
@@ -691,7 +622,6 @@ export default function LandingPage() {
           overflow: hidden;
           border-radius: 18px 18px 0 0;
         }
-
         .tplPreviewLines {
           display: flex;
           flex-direction: column;
@@ -706,7 +636,6 @@ export default function LandingPage() {
           transition: all 0.4s ease;
           transform-origin: left;
         }
-
         .tplParticlesWrap {
           position: absolute;
           inset: 0;
@@ -745,7 +674,6 @@ export default function LandingPage() {
             opacity: 1;
           }
         }
-
         .tplMock {
           display: flex;
           align-items: center;
@@ -780,7 +708,6 @@ export default function LandingPage() {
         .tplMockLine.short {
           width: 45%;
         }
-
         .tplWatermark {
           position: absolute;
           bottom: 10px;
@@ -793,7 +720,6 @@ export default function LandingPage() {
           text-transform: uppercase;
           z-index: 1;
         }
-
         .templateInfo {
           padding: 14px 16px 14px;
         }
@@ -811,7 +737,6 @@ export default function LandingPage() {
           color: var(--dusty-rose);
         }
 
-        /* ===== STEPS ===== */
         .stepsGrid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -842,7 +767,6 @@ export default function LandingPage() {
           line-height: 1.6;
         }
 
-        /* ===== PROOF ===== */
         .proofCard {
           width: 240px;
           padding: 28px 24px;
@@ -869,7 +793,6 @@ export default function LandingPage() {
           color: var(--dusty-rose);
         }
 
-        /* ===== TESTIMONIAL ===== */
         .testimonial {
           max-width: 680px;
           margin: 48px auto 0;
@@ -896,7 +819,6 @@ export default function LandingPage() {
           font-weight: 500;
         }
 
-        /* ===== CTA ===== */
         .ctaSection {
           padding: 60px 24px 100px;
         }
@@ -939,7 +861,6 @@ export default function LandingPage() {
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
         }
 
-        /* ===== FOOTER ===== */
         .footer {
           background: var(--dark-plum);
           padding: 60px 24px 24px;
@@ -996,7 +917,6 @@ export default function LandingPage() {
           font-size: 11px;
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
           .ctaInner {
             flex-direction: column;

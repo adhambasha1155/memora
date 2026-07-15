@@ -34,6 +34,9 @@ interface FormData {
   inviteSubtitle: string
   inviteCountdownLabel: string
   inviteButtonText: string
+  bgColor: string
+  textColor: string
+  accentColor: string
 }
 
 const TEMPLATE_NAMES: Record<number, string> = {
@@ -61,15 +64,87 @@ const TABS = [
   { id: 2, label: 'Gallery', icon: '🖼' },
   { id: 3, label: 'Message', icon: '✉' },
   { id: 4, label: 'Music', icon: '♪' },
+  { id: 5, label: 'Design', icon: '🎨' },
 ]
 
-// ─── Upload to R2 (with compression) ─────────────────────────────────────────
+// ── Media limits ──────────────────────────────────────────────────────────────
+const MAX_JOURNEY_PHOTOS = 5
+const MAX_GALLERY_PHOTOS = 10
+
+// ── Color palettes ────────────────────────────────────────────────────────────
+const BG_COLORS = [
+  { label: 'Cream', value: '#fefccf' },
+  { label: 'Blush', value: '#fdf5f7' },
+  { label: 'Lavender', value: '#f3f0ff' },
+  { label: 'Mint', value: '#f0fdf4' },
+  { label: 'Sky', value: '#f0f9ff' },
+  { label: 'Peach', value: '#fff7ed' },
+  { label: 'Rose', value: '#fff1f2' },
+  { label: 'Sand', value: '#fdf8f0' },
+  { label: 'Midnight', value: '#0f0f1a' },
+  { label: 'Dark Plum', value: '#1a0a0a' },
+  { label: 'Forest', value: '#0a1a0f' },
+  { label: 'Navy', value: '#0a0f1a' },
+  { label: 'White', value: '#ffffff' },
+  { label: 'Off White', value: '#fafafa' },
+  { label: 'Charcoal', value: '#1a1a2e' },
+  { label: 'Slate', value: '#1e293b' },
+]
+
+const TEXT_COLORS = [
+  { label: 'Dark Plum', value: '#2c1a20' },
+  { label: 'Charcoal', value: '#1a1a1a' },
+  { label: 'Navy', value: '#1e293b' },
+  { label: 'Forest', value: '#14532d' },
+  { label: 'White', value: '#ffffff' },
+  { label: 'Cream', value: '#fefccf' },
+  { label: 'Rose', value: '#fdf5f7' },
+  { label: 'Silver', value: '#e2e8f0' },
+]
+
+const ACCENT_COLORS = [
+  { label: 'Rose', value: '#c2185b' },
+  { label: 'Pink', value: '#e91e8c' },
+  { label: 'Coral', value: '#ff6b6b' },
+  { label: 'Gold', value: '#d4a017' },
+  { label: 'Amber', value: '#f59e0b' },
+  { label: 'Teal', value: '#0d9488' },
+  { label: 'Purple', value: '#7c3aed' },
+  { label: 'Blue', value: '#2563eb' },
+  { label: 'Green', value: '#16a34a' },
+  { label: 'Orange', value: '#ea580c' },
+  { label: 'Plum', value: '#7a1733' },
+  { label: 'Indigo', value: '#4338ca' },
+]
+
+// Extract the R2 object key from a public URL, e.g.
+// https://pub-xxxx.r2.dev/users/123/sites/foo/1719-abc.webp -> users/123/sites/foo/1719-abc.webp
+function extractR2Key(publicUrl: string): string | null {
+  const base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+  if (!base || !publicUrl.startsWith(base)) return null
+  return publicUrl.slice(base.length + 1) // +1 to drop the leading slash
+}
+
+async function deleteFileFromR2(publicUrl: string): Promise<void> {
+  const key = extractR2Key(publicUrl)
+  if (!key) return // not an R2 URL we recognize, skip silently
+  try {
+    await fetch('/api/r2/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    })
+  } catch (e) {
+    console.error('Failed to delete file from R2:', e)
+    // Non-fatal — the DB reference is still removed even if this fails
+  }
+}
+
 async function uploadFileToR2(
   file: File,
   userId: string,
   siteSlug: string
 ): Promise<string> {
-  // Compress images before upload
   let fileToUpload: File = file
   if (file.type.startsWith('image/')) {
     fileToUpload = await imageCompression(file, {
@@ -134,6 +209,9 @@ export default function EditPage() {
     inviteSubtitle: '',
     inviteCountdownLabel: '',
     inviteButtonText: '',
+    bgColor: '#fefccf',
+    textColor: '#2c1a20',
+    accentColor: '#c2185b',
   })
 
   useEffect(() => {
@@ -174,6 +252,9 @@ export default function EditPage() {
         inviteSubtitle: site.invite_subtitle || '',
         inviteCountdownLabel: site.invite_countdown_label || '',
         inviteButtonText: site.invite_button_text || '',
+        bgColor: site.bg_color || '#fefccf',
+        textColor: site.text_color || '#2c1a20',
+        accentColor: site.accent_color || '#c2185b',
       })
 
       const { data: media } = await supabase
@@ -228,8 +309,17 @@ export default function EditPage() {
 
   async function handlePhotoAdd(files: FileList, type: 'journey' | 'gallery') {
     if (!userId || !form.slug) return
+
+    const currentCount =
+      type === 'journey' ? journeyPhotos.length : galleryPhotos.length
+    const max = type === 'journey' ? MAX_JOURNEY_PHOTOS : MAX_GALLERY_PHOTOS
+    const remainingSlots = max - currentCount
+    if (remainingSlots <= 0) return
+
+    const filesToAdd = Array.from(files).slice(0, remainingSlots)
+
     const setter = type === 'journey' ? setJourneyPhotos : setGalleryPhotos
-    const newFiles: UploadedFile[] = Array.from(files).map((f) => ({
+    const newFiles: UploadedFile[] = filesToAdd.map((f) => ({
       id: Math.random().toString(36).slice(2),
       file: f,
       preview: URL.createObjectURL(f),
@@ -264,7 +354,10 @@ export default function EditPage() {
     const setter = type === 'journey' ? setJourneyPhotos : setGalleryPhotos
     setter((prev) => {
       const f = prev.find((p) => p.id === id)
-      if (f) URL.revokeObjectURL(f.preview)
+      if (f) {
+        URL.revokeObjectURL(f.preview)
+        if (f.r2Url) deleteFileFromR2(f.r2Url) // fire-and-forget, don't block UI
+      }
       return prev.filter((p) => p.id !== id)
     })
   }
@@ -288,6 +381,9 @@ export default function EditPage() {
           invite_subtitle: form.inviteSubtitle || null,
           invite_countdown_label: form.inviteCountdownLabel || null,
           invite_button_text: form.inviteButtonText || null,
+          bg_color: form.bgColor || null,
+          text_color: form.textColor || null,
+          accent_color: form.accentColor || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', siteId)
@@ -331,6 +427,9 @@ export default function EditPage() {
   }
 
   if (loading) return <Loading />
+
+  const journeyLimitReached = journeyPhotos.length >= MAX_JOURNEY_PHOTOS
+  const galleryLimitReached = galleryPhotos.length >= MAX_GALLERY_PHOTOS
 
   return (
     <div className="shell">
@@ -497,11 +596,20 @@ export default function EditPage() {
             <div className="section">
               <h2 className="sectionTitle">Journey</h2>
               <p className="sectionDesc">
-                Add milestones — each with a photo, date and title.
+                Add milestones — each with a photo, date and title.{' '}
+                <span className="limitCount">
+                  {journeyPhotos.length} / {MAX_JOURNEY_PHOTOS}
+                </span>
               </p>
               {!form.slug && (
                 <div className="uploadWarning">
                   Set a site slug in Basic Info first.
+                </div>
+              )}
+              {journeyLimitReached && (
+                <div className="uploadWarning limit">
+                  You&apos;ve reached the {MAX_JOURNEY_PHOTOS}-photo limit for
+                  Journey milestones.
                 </div>
               )}
               <div className="milestoneList">
@@ -573,10 +681,16 @@ export default function EditPage() {
                 ))}
               </div>
               <button
-                className={`addBtn ${!form.slug ? 'disabled' : ''}`}
-                onClick={() => form.slug && journeyInputRef.current?.click()}
+                className={`addBtn ${!form.slug || journeyLimitReached ? 'disabled' : ''}`}
+                onClick={() =>
+                  form.slug &&
+                  !journeyLimitReached &&
+                  journeyInputRef.current?.click()
+                }
               >
-                + Add milestone
+                {journeyLimitReached
+                  ? `Limit reached (${MAX_JOURNEY_PHOTOS} max)`
+                  : '+ Add milestone'}
               </button>
               <input
                 ref={journeyInputRef}
@@ -595,11 +709,20 @@ export default function EditPage() {
             <div className="section">
               <h2 className="sectionTitle">Gallery & Gift</h2>
               <p className="sectionDesc">
-                Gallery photos and the gift box message.
+                Gallery photos and the gift box message.{' '}
+                <span className="limitCount">
+                  {galleryPhotos.length} / {MAX_GALLERY_PHOTOS}
+                </span>
               </p>
               {!form.slug && (
                 <div className="uploadWarning">
                   Set a site slug in Basic Info first.
+                </div>
+              )}
+              {galleryLimitReached && (
+                <div className="uploadWarning limit">
+                  You&apos;ve reached the {MAX_GALLERY_PHOTOS}-photo limit for
+                  the Gallery.
                 </div>
               )}
               <div className="giftBox">
@@ -690,10 +813,16 @@ export default function EditPage() {
                 ))}
               </div>
               <button
-                className={`addBtn ${!form.slug ? 'disabled' : ''}`}
-                onClick={() => form.slug && galleryInputRef.current?.click()}
+                className={`addBtn ${!form.slug || galleryLimitReached ? 'disabled' : ''}`}
+                onClick={() =>
+                  form.slug &&
+                  !galleryLimitReached &&
+                  galleryInputRef.current?.click()
+                }
               >
-                + Add gallery photo
+                {galleryLimitReached
+                  ? `Limit reached (${MAX_GALLERY_PHOTOS} max)`
+                  : '+ Add gallery photo'}
               </button>
               <input
                 ref={galleryInputRef}
@@ -754,6 +883,189 @@ export default function EditPage() {
                 Supports Spotify, SoundCloud or direct MP3 links. Music plays
                 automatically on the invitation page.
               </div>
+            </div>
+          )}
+
+          {activeTab === 5 && (
+            <div className="section">
+              <h2 className="sectionTitle">Design</h2>
+              <p className="sectionDesc">
+                Customise the colours of your Memora site.
+              </p>
+
+              <div
+                className="designPreview"
+                style={{
+                  background: form.bgColor,
+                  border: `2px solid ${form.accentColor}`,
+                }}
+              >
+                <div
+                  className="designPreviewTitle"
+                  style={{
+                    color: form.textColor,
+                    fontFamily: "'Cormorant Garamond', serif",
+                  }}
+                >
+                  Happy Birthday {form.recipientName || 'Aria'}!
+                </div>
+                <div
+                  className="designPreviewSub"
+                  style={{ color: form.textColor, opacity: 0.6 }}
+                >
+                  A magical celebration filled with wonder...
+                </div>
+                <div
+                  className="designPreviewBtn"
+                  style={{ background: form.accentColor, color: '#fff' }}
+                >
+                  {form.inviteButtonText || 'Enter the Magic'} ✦
+                </div>
+              </div>
+
+              <div className="colorSection">
+                <div className="colorSectionLabel">Background colour</div>
+                <div className="colorGrid">
+                  {BG_COLORS.map((c) => (
+                    <button
+                      key={c.value}
+                      className="colorSwatch"
+                      title={c.label}
+                      style={{
+                        background: c.value,
+                        border:
+                          form.bgColor === c.value
+                            ? '3px solid #c2185b'
+                            : '2px solid rgba(0,0,0,0.08)',
+                        transform:
+                          form.bgColor === c.value ? 'scale(1.15)' : 'scale(1)',
+                      }}
+                      onClick={() =>
+                        setForm((f) => ({ ...f, bgColor: c.value }))
+                      }
+                    />
+                  ))}
+                  <label className="colorSwatchCustom">
+                    <input
+                      type="color"
+                      value={form.bgColor}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, bgColor: e.target.value }))
+                      }
+                      style={{
+                        opacity: 0,
+                        position: 'absolute',
+                        width: 0,
+                        height: 0,
+                      }}
+                    />
+                    <span>+</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="colorSection">
+                <div className="colorSectionLabel">Text colour</div>
+                <div className="colorGrid">
+                  {TEXT_COLORS.map((c) => (
+                    <button
+                      key={c.value}
+                      className="colorSwatch"
+                      title={c.label}
+                      style={{
+                        background: c.value,
+                        border:
+                          form.textColor === c.value
+                            ? '3px solid #c2185b'
+                            : '2px solid rgba(0,0,0,0.08)',
+                        transform:
+                          form.textColor === c.value
+                            ? 'scale(1.15)'
+                            : 'scale(1)',
+                      }}
+                      onClick={() =>
+                        setForm((f) => ({ ...f, textColor: c.value }))
+                      }
+                    />
+                  ))}
+                  <label className="colorSwatchCustom">
+                    <input
+                      type="color"
+                      value={form.textColor}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, textColor: e.target.value }))
+                      }
+                      style={{
+                        opacity: 0,
+                        position: 'absolute',
+                        width: 0,
+                        height: 0,
+                      }}
+                    />
+                    <span>+</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="colorSection">
+                <div className="colorSectionLabel">
+                  Accent colour{' '}
+                  <span className="hint">(buttons & highlights)</span>
+                </div>
+                <div className="colorGrid">
+                  {ACCENT_COLORS.map((c) => (
+                    <button
+                      key={c.value}
+                      className="colorSwatch"
+                      title={c.label}
+                      style={{
+                        background: c.value,
+                        border:
+                          form.accentColor === c.value
+                            ? '3px solid #2c1a20'
+                            : '2px solid rgba(0,0,0,0.08)',
+                        transform:
+                          form.accentColor === c.value
+                            ? 'scale(1.15)'
+                            : 'scale(1)',
+                      }}
+                      onClick={() =>
+                        setForm((f) => ({ ...f, accentColor: c.value }))
+                      }
+                    />
+                  ))}
+                  <label className="colorSwatchCustom">
+                    <input
+                      type="color"
+                      value={form.accentColor}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, accentColor: e.target.value }))
+                      }
+                      style={{
+                        opacity: 0,
+                        position: 'absolute',
+                        width: 0,
+                        height: 0,
+                      }}
+                    />
+                    <span>+</span>
+                  </label>
+                </div>
+              </div>
+
+              <button
+                className="resetColorsBtn"
+                onClick={() =>
+                  setForm((f) => ({
+                    ...f,
+                    bgColor: '#fadadd',
+                    textColor: '#70585b',
+                    accentColor: '#70585b',
+                  }))
+                }
+              >
+                Reset to defaults
+              </button>
             </div>
           )}
 
@@ -992,6 +1304,10 @@ export default function EditPage() {
           margin-bottom: 20px;
           line-height: 1.5;
         }
+        .limitCount {
+          font-weight: 700;
+          color: var(--main-rose);
+        }
         .subTitle {
           font-family: 'Cormorant Garamond', serif;
           font-size: 18px;
@@ -1097,6 +1413,12 @@ export default function EditPage() {
           font-size: 11px;
           color: #7a5800;
           margin-bottom: 16px;
+        }
+        .uploadWarning.limit {
+          background: rgba(194, 24, 91, 0.06);
+          border-color: rgba(194, 24, 91, 0.2);
+          color: var(--rose-dark);
+          font-weight: 600;
         }
         .milestoneList {
           display: flex;
@@ -1433,6 +1755,99 @@ export default function EditPage() {
         }
         .mobileSaveBtn.saved {
           background: #2e7d32;
+        }
+        .designPreview {
+          border-radius: 16px;
+          padding: 20px;
+          margin-bottom: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          transition: all 0.3s ease;
+        }
+        .designPreviewTitle {
+          font-size: 18px;
+          font-weight: 700;
+          line-height: 1.2;
+        }
+        .designPreviewSub {
+          font-size: 11px;
+          line-height: 1.5;
+        }
+        .designPreviewBtn {
+          display: inline-block;
+          padding: 6px 14px;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 600;
+          width: fit-content;
+          margin-top: 4px;
+        }
+        .colorSection {
+          margin-bottom: 20px;
+        }
+        .colorSectionLabel {
+          font-size: 10px;
+          font-weight: 700;
+          color: var(--dark-plum);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 10px;
+        }
+        .colorGrid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .colorSwatch {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition:
+            transform 0.2s ease,
+            border 0.2s ease;
+          padding: 0;
+          flex-shrink: 0;
+        }
+        .colorSwatch:hover {
+          transform: scale(1.15);
+        }
+        .colorSwatchCustom {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 2px dashed rgba(194, 24, 91, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 16px;
+          color: var(--main-rose);
+          position: relative;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+        }
+        .colorSwatchCustom:hover {
+          border-color: var(--main-rose);
+          background: var(--rose-blush);
+        }
+        .resetColorsBtn {
+          width: 100%;
+          padding: 10px;
+          border: 1.5px solid var(--border);
+          border-radius: 10px;
+          background: transparent;
+          font-size: 12px;
+          color: var(--dusty-rose);
+          font-family: 'DM Sans', sans-serif;
+          cursor: pointer;
+          transition: all 0.2s;
+          margin-top: 4px;
+        }
+        .resetColorsBtn:hover {
+          border-color: var(--main-rose);
+          color: var(--main-rose);
         }
         .sheetOverlay {
           position: fixed;

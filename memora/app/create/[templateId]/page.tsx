@@ -66,6 +66,10 @@ const TABS = [
   { id: 5, label: 'Design', icon: '🎨' },
 ]
 
+// ── Media limits ──────────────────────────────────────────────────────────────
+const MAX_JOURNEY_PHOTOS = 5
+const MAX_GALLERY_PHOTOS = 10
+
 const BG_COLORS = [
   { label: 'Cream', value: '#fefccf' },
   { label: 'Blush', value: '#fdf5f7' },
@@ -110,6 +114,28 @@ const ACCENT_COLORS = [
   { label: 'Plum', value: '#7a1733' },
   { label: 'Indigo', value: '#4338ca' },
 ]
+
+// Extract the R2 object key from a public URL, e.g.
+// https://pub-xxxx.r2.dev/users/123/sites/foo/1719-abc.webp -> users/123/sites/foo/1719-abc.webp
+function extractR2Key(publicUrl: string): string | null {
+  const base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+  if (!base || !publicUrl.startsWith(base)) return null
+  return publicUrl.slice(base.length + 1)
+}
+
+async function deleteFileFromR2(publicUrl: string): Promise<void> {
+  const key = extractR2Key(publicUrl)
+  if (!key) return
+  try {
+    await fetch('/api/r2/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    })
+  } catch (e) {
+    console.error('Failed to delete file from R2:', e)
+  }
+}
 
 // ─── Upload to R2 (with compression) ─────────────────────────────────────────
 async function uploadFileToR2(
@@ -207,8 +233,18 @@ export default function CreatePage() {
 
   async function handlePhotoAdd(files: FileList, type: 'journey' | 'gallery') {
     if (!userId || !form.slug) return
+
+    const currentCount =
+      type === 'journey' ? journeyPhotos.length : galleryPhotos.length
+    const max = type === 'journey' ? MAX_JOURNEY_PHOTOS : MAX_GALLERY_PHOTOS
+    const remainingSlots = max - currentCount
+    if (remainingSlots <= 0) return
+
+    // Only take as many files as fit within the limit
+    const filesToAdd = Array.from(files).slice(0, remainingSlots)
+
     const setter = type === 'journey' ? setJourneyPhotos : setGalleryPhotos
-    const newFiles: UploadedFile[] = Array.from(files).map((f) => ({
+    const newFiles: UploadedFile[] = filesToAdd.map((f) => ({
       id: Math.random().toString(36).slice(2),
       file: f,
       preview: URL.createObjectURL(f),
@@ -243,7 +279,10 @@ export default function CreatePage() {
     const setter = type === 'journey' ? setJourneyPhotos : setGalleryPhotos
     setter((prev) => {
       const f = prev.find((p) => p.id === id)
-      if (f) URL.revokeObjectURL(f.preview)
+      if (f) {
+        URL.revokeObjectURL(f.preview)
+        if (f.r2Url) deleteFileFromR2(f.r2Url)
+      }
       return prev.filter((p) => p.id !== id)
     })
   }
@@ -263,7 +302,17 @@ export default function CreatePage() {
             recipient_name: form.recipientName,
             sender_name: form.senderName,
             message: form.message,
+            date: form.date || null,
             music_url: form.musicUrl || null,
+            gift_message: form.giftMessage || null,
+            gift_subtitle: form.giftSubtitle || null,
+            invite_heading: form.inviteHeading || null,
+            invite_subtitle: form.inviteSubtitle || null,
+            invite_countdown_label: form.inviteCountdownLabel || null,
+            invite_button_text: form.inviteButtonText || null,
+            bg_color: form.bgColor || null,
+            text_color: form.textColor || null,
+            accent_color: form.accentColor || null,
             is_published: false,
             updated_at: new Date().toISOString(),
           },
@@ -304,22 +353,19 @@ export default function CreatePage() {
     }
   }
 
+  const journeyLimitReached = journeyPhotos.length >= MAX_JOURNEY_PHOTOS
+  const galleryLimitReached = galleryPhotos.length >= MAX_GALLERY_PHOTOS
+
   return (
     <div className="shell">
       <nav className="topNav">
         <Link href="/pick" className="navBack">
-          ← Back
+          ←
         </Link>
         <div className="navCenter">
           <span className="navTemplate">{TEMPLATE_NAMES[templateId]}</span>
         </div>
-        <button
-          className={`saveBtn ${saving ? 'loading' : ''} ${saved ? 'saved' : ''}`}
-          onClick={handleSave}
-          disabled={saving || !form.slug || !!slugError}
-        >
-          {saving ? '...' : saved ? '✓' : 'Save'}
-        </button>
+        <div className="navSpacer" />
       </nav>
 
       <div className="tabBar">
@@ -470,11 +516,20 @@ export default function CreatePage() {
             <div className="section">
               <h2 className="sectionTitle">Journey</h2>
               <p className="sectionDesc">
-                Add milestones — each with a photo, date and title.
+                Add milestones — each with a photo, date and title.{' '}
+                <span className="limitCount">
+                  {journeyPhotos.length} / {MAX_JOURNEY_PHOTOS}
+                </span>
               </p>
               {!form.slug && (
                 <div className="uploadWarning">
                   Set a site slug in Basic Info first.
+                </div>
+              )}
+              {journeyLimitReached && (
+                <div className="uploadWarning limit">
+                  You&apos;ve reached the {MAX_JOURNEY_PHOTOS}-photo limit for
+                  Journey milestones.
                 </div>
               )}
               <div className="milestoneList">
@@ -546,10 +601,16 @@ export default function CreatePage() {
                 ))}
               </div>
               <button
-                className={`addBtn ${!form.slug ? 'disabled' : ''}`}
-                onClick={() => form.slug && journeyInputRef.current?.click()}
+                className={`addBtn ${!form.slug || journeyLimitReached ? 'disabled' : ''}`}
+                onClick={() =>
+                  form.slug &&
+                  !journeyLimitReached &&
+                  journeyInputRef.current?.click()
+                }
               >
-                + Add milestone
+                {journeyLimitReached
+                  ? `Limit reached (${MAX_JOURNEY_PHOTOS} max)`
+                  : '+ Add milestone'}
               </button>
               <input
                 ref={journeyInputRef}
@@ -568,11 +629,20 @@ export default function CreatePage() {
             <div className="section">
               <h2 className="sectionTitle">Gallery & Gift</h2>
               <p className="sectionDesc">
-                Gallery photos and the gift box message.
+                Gallery photos and the gift box message.{' '}
+                <span className="limitCount">
+                  {galleryPhotos.length} / {MAX_GALLERY_PHOTOS}
+                </span>
               </p>
               {!form.slug && (
                 <div className="uploadWarning">
                   Set a site slug in Basic Info first.
+                </div>
+              )}
+              {galleryLimitReached && (
+                <div className="uploadWarning limit">
+                  You&apos;ve reached the {MAX_GALLERY_PHOTOS}-photo limit for
+                  the Gallery.
                 </div>
               )}
               <div className="giftBox">
@@ -663,10 +733,16 @@ export default function CreatePage() {
                 ))}
               </div>
               <button
-                className={`addBtn ${!form.slug ? 'disabled' : ''}`}
-                onClick={() => form.slug && galleryInputRef.current?.click()}
+                className={`addBtn ${!form.slug || galleryLimitReached ? 'disabled' : ''}`}
+                onClick={() =>
+                  form.slug &&
+                  !galleryLimitReached &&
+                  galleryInputRef.current?.click()
+                }
               >
-                + Add gallery photo
+                {galleryLimitReached
+                  ? `Limit reached (${MAX_GALLERY_PHOTOS} max)`
+                  : '+ Add gallery photo'}
               </button>
               <input
                 ref={galleryInputRef}
@@ -1047,25 +1123,8 @@ export default function CreatePage() {
           font-weight: 700;
           color: var(--main-rose);
         }
-        .saveBtn {
-          padding: 7px 16px;
-          background: var(--main-rose);
-          color: #fff;
-          border: none;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 600;
-          font-family: 'DM Sans', sans-serif;
-          cursor: pointer;
-          transition: all 0.2s;
-          box-shadow: 0 4px 12px rgba(194, 24, 91, 0.2);
-        }
-        .saveBtn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .saveBtn.saved {
-          background: #2e7d32;
+        .navSpacer {
+          width: 60px;
         }
         .tabBar {
           position: fixed;
@@ -1154,6 +1213,10 @@ export default function CreatePage() {
           color: var(--dusty-rose);
           margin-bottom: 20px;
           line-height: 1.5;
+        }
+        .limitCount {
+          font-weight: 700;
+          color: var(--main-rose);
         }
         .subTitle {
           font-family: 'Cormorant Garamond', serif;
@@ -1260,6 +1323,12 @@ export default function CreatePage() {
           font-size: 11px;
           color: #7a5800;
           margin-bottom: 16px;
+        }
+        .uploadWarning.limit {
+          background: rgba(194, 24, 91, 0.06);
+          border-color: rgba(194, 24, 91, 0.2);
+          color: var(--rose-dark);
+          font-weight: 600;
         }
         .milestoneList {
           display: flex;

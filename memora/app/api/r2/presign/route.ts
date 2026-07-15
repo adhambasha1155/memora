@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPresignedUploadUrl } from '@/app/lib/r2'
-import { createClient } from '@/app/lib/supabase'
+import { createServerSupabaseClient } from '@/app/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
   try {
     // Verify user is authenticated
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const supabase = await createServerSupabaseClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -14,11 +16,18 @@ export async function POST(req: NextRequest) {
     const { key, contentType } = await req.json()
 
     if (!key || !contentType) {
-      return NextResponse.json({ error: 'Missing key or contentType' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Missing key or contentType' },
+        { status: 400 }
+      )
     }
 
     // Only allow image uploads through this route
-    if (!contentType.startsWith('image/') && !contentType.startsWith('video/') && contentType !== 'audio/mpeg') {
+    if (
+      !contentType.startsWith('image/') &&
+      !contentType.startsWith('video/') &&
+      contentType !== 'audio/mpeg'
+    ) {
       return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
     }
 
@@ -33,6 +42,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ presignedUrl, publicUrl })
   } catch (error) {
     console.error('Presign error:', error)
-    return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to generate upload URL' },
+      { status: 500 }
+    )
   }
 }

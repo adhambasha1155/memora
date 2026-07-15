@@ -70,10 +70,42 @@ export default function DashboardPage() {
   }, [])
 
   async function handleDelete(siteId: string) {
+    // Fetch media rows first so we know which R2 files to delete
+    const { data: mediaRows } = await supabase
+      .from('media')
+      .select('file_url')
+      .eq('site_id', siteId)
+
+    if (mediaRows) {
+      const base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+      for (const row of mediaRows) {
+        if (base && row.file_url?.startsWith(base)) {
+          const key = row.file_url.slice(base.length + 1)
+          fetch('/api/r2/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key }),
+          }).catch((e) => console.error('Failed to delete R2 file:', e))
+        }
+      }
+    }
+
     await supabase.from('media').delete().eq('site_id', siteId)
     await supabase.from('sites').delete().eq('id', siteId)
     setSites(sites.filter((s) => s.id !== siteId))
     setDeleteId(null)
+  }
+
+  async function handlePublish(siteId: string, currentlyPublished: boolean) {
+    await supabase
+      .from('sites')
+      .update({ is_published: !currentlyPublished })
+      .eq('id', siteId)
+    setSites(
+      sites.map((s) =>
+        s.id === siteId ? { ...s, is_published: !currentlyPublished } : s
+      )
+    )
   }
 
   function copyLink(slug: string) {
@@ -172,6 +204,19 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="siteCardActions">
+                    <button
+                      className={`siteActionBtn publish ${site.is_published ? 'unpublish' : ''}`}
+                      onClick={() => handlePublish(site.id, site.is_published)}
+                      aria-label={site.is_published ? 'Unpublish' : 'Publish'}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
+                        {site.is_published ? 'cloud_off' : 'cloud_upload'}
+                      </span>
+                      <span>{site.is_published ? 'Unpublish' : 'Publish'}</span>
+                    </button>
                     <button
                       className="siteActionBtn copy"
                       onClick={() => copyLink(site.slug)}
@@ -305,11 +350,8 @@ const dashStyles = `
     box-shadow: 0 4px 20px rgba(194, 24, 91, 0.06);
   }
   .dashNavInner {
-    max-width: 1100px;
-    margin: 0 auto;
-    height: 64px;
-    display: flex;
-    align-items: center;
+    max-width: 1100px; margin: 0 auto;
+    height: 64px; display: flex; align-items: center;
   }
   .dashBrand { text-decoration: none; display: flex; align-items: center; }
   .logo { height: 36px; width: auto; object-fit: contain; }
@@ -368,7 +410,7 @@ const dashStyles = `
   }
   .siteStat { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--dusty-rose); }
   .statIcon { font-size: 14px !important; }
-  .siteCardActions { display: flex; gap: 8px; }
+  .siteCardActions { display: flex; gap: 8px; flex-wrap: wrap; }
   .siteActionBtn {
     flex: 1; min-height: 44px; border-radius: 999px;
     font-size: 11px; font-weight: 600; font-family: 'DM Sans', sans-serif;
@@ -376,6 +418,24 @@ const dashStyles = `
     justify-content: center; gap: 4px; transition: 0.2s ease; text-decoration: none;
   }
   .siteActionBtn .material-symbols-outlined { font-size: 16px; }
+  .siteActionBtn.publish {
+    background: transparent;
+    border: 1px solid rgba(46, 125, 50, 0.3);
+    color: #2e7d32;
+  }
+  .siteActionBtn.publish:hover {
+    background: rgba(46, 125, 50, 0.08);
+    border-color: #2e7d32;
+  }
+  .siteActionBtn.publish.unpublish {
+    border-color: rgba(194, 24, 91, 0.2);
+    color: var(--dusty-rose);
+  }
+  .siteActionBtn.publish.unpublish:hover {
+    background: var(--rose-blush);
+    border-color: var(--main-rose);
+    color: var(--main-rose);
+  }
   .siteActionBtn.copy { background: transparent; border: 1px solid rgba(194, 24, 91, 0.2); color: var(--main-rose); }
   .siteActionBtn.copy:hover { background: var(--rose-blush); border-color: var(--main-rose); }
   .siteActionBtn.edit { background: var(--main-rose); border: 1px solid var(--main-rose); color: #fff; }
@@ -439,8 +499,7 @@ const dashStyles = `
   .modalBtn.confirm:hover { background: #b71c1c; }
 
   @media (max-width: 640px) {
-    .dashGreeting    { font-size: 28px; }
-    .sitesGrid       { grid-template-columns: 1fr; }
-    .siteCardActions { flex-wrap: wrap; }
+    .dashGreeting { font-size: 28px; }
+    .sitesGrid    { grid-template-columns: 1fr; }
   }
 `
